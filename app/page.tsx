@@ -5,6 +5,7 @@ import { MapProvider } from '@/contexts/MapContext';
 import { MapView } from '@/components/MapView';
 import { ControlPanel } from '@/components/ControlPanel';
 import { ExportPanel } from '@/components/ExportPanel';
+import { AIFeaturesPanel } from '@/components/AIFeaturesPanel';
 
 export default function Home() {
   return (
@@ -31,6 +32,12 @@ export default function Home() {
                   className="text-sm font-medium text-gray-700 hover:text-gray-900 transition"
                 >
                   About
+                </a>
+                <a
+                  href="/pricing"
+                  className="text-sm font-medium text-gray-700 hover:text-gray-900 transition"
+                >
+                  Pricing
                 </a>
                 <a
                   href="/gallery"
@@ -68,7 +75,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Control Panel */}
             <div className="lg:col-span-4 xl:col-span-3">
-              <div className="sticky top-24">
+              <div className="sticky top-24 space-y-6">
                 <ControlPanel />
               </div>
             </div>
@@ -85,6 +92,11 @@ export default function Home() {
 
               {/* Mobile-only spacing */}
               <div className="lg:hidden h-6" />
+
+              {/* AI Features Panel - Below map on mobile/desktop */}
+              <div className="mt-6">
+                <AIFeaturesPanel />
+              </div>
             </div>
 
             {/* Export Panel */}

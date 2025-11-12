@@ -7,6 +7,7 @@ import { ExportFormat } from '@/types';
 import { downloadBlob, generateExportFilename, formatCoordinates, formatTimestamp } from '@/lib/utils';
 import { getThemeColors } from '@/lib/themes';
 import { replacePlaceholders } from '@/lib/captions';
+import { addWatermarkToDataURL, hasValidLicense, getWatermarkText } from '@/lib/watermark';
 
 export function ExportPanel() {
   const {
@@ -41,22 +42,33 @@ export function ExportPanel() {
       }
 
       // Generate image based on format
-      let blob: Blob;
+      let dataUrl: string;
       if (format.includes('png') || format === 'transparent-png') {
-        const dataUrl = await toPng(mapContainer, {
+        dataUrl = await toPng(mapContainer, {
           quality: 1.0,
           pixelRatio: 2,
         });
-        const response = await fetch(dataUrl);
-        blob = await response.blob();
       } else {
-        const dataUrl = await toJpeg(mapContainer, {
+        dataUrl = await toJpeg(mapContainer, {
           quality: 0.95,
           pixelRatio: 2,
         });
-        const response = await fetch(dataUrl);
-        blob = await response.blob();
       }
+
+      // Add watermark if user doesn't have a license
+      const shouldWatermark = includeWatermark && !hasValidLicense();
+      if (shouldWatermark) {
+        dataUrl = await addWatermarkToDataURL(dataUrl, {
+          text: getWatermarkText(format),
+          position: 'bottom-center',
+          opacity: 0.7,
+          fontSize: 18,
+        });
+      }
+
+      // Convert to blob
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
 
       // Download the file
       const filename = generateExportFilename(format, location.city);
