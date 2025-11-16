@@ -192,7 +192,7 @@ export default function Home() {
         {/* Footer */}
         <footer className="bg-gray-900 text-white py-12">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div>
                 <h5 className="text-xl font-bold mb-4">Bas 5 Minute</h5>
                 <p className="text-gray-400 text-sm">
@@ -203,8 +203,8 @@ export default function Home() {
               <div>
                 <h5 className="text-lg font-bold mb-4">Links</h5>
                 <div className="space-y-2">
-                  <a href="/about" className="block text-gray-400 hover:text-white transition text-sm">
-                    About
+                  <a href="/pricing" className="block text-gray-400 hover:text-white transition text-sm">
+                    Pricing
                   </a>
                   <a href="/gallery" className="block text-gray-400 hover:text-white transition text-sm">
                     Gallery
@@ -216,8 +216,31 @@ export default function Home() {
               </div>
 
               <div>
+                <h5 className="text-lg font-bold mb-4">Legal</h5>
+                <div className="space-y-2">
+                  <a href="/privacy" className="block text-gray-400 hover:text-white transition text-sm">
+                    Privacy Policy
+                  </a>
+                  <a href="/terms" className="block text-gray-400 hover:text-white transition text-sm">
+                    Terms of Service
+                  </a>
+                  <a href="/contact" className="block text-gray-400 hover:text-white transition text-sm">
+                    Contact Us
+                  </a>
+                </div>
+              </div>
+
+              <div>
                 <h5 className="text-lg font-bold mb-4">Support</h5>
                 <div className="space-y-2">
+                  <a
+                    href="https://github.com/pranaysuyash/bas5minute"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-gray-400 hover:text-white transition text-sm"
+                  >
+                    GitHub
+                  </a>
                   <a
                     href="https://buymeacoffee.com"
                     target="_blank"

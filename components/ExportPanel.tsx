@@ -8,6 +8,9 @@ import { downloadBlob, generateExportFilename, formatCoordinates, formatTimestam
 import { getThemeColors } from '@/lib/themes';
 import { replacePlaceholders } from '@/lib/captions';
 import { addWatermarkToDataURL, hasValidLicense, getWatermarkText } from '@/lib/watermark';
+import { analytics } from '@/lib/analytics';
+import { SocialShare } from './SocialShare';
+import { EmailCaptureModal } from './EmailCaptureModal';
 
 export function ExportPanel() {
   const {
@@ -23,6 +26,8 @@ export function ExportPanel() {
   const [includeWatermark, setIncludeWatermark] = useState(true);
   const [includeCoordinates, setIncludeCoordinates] = useState(false);
   const [includeTimestamp, setIncludeTimestamp] = useState(false);
+  const [showEmailCapture, setShowEmailCapture] = useState(false);
+  const [pendingExport, setPendingExport] = useState<ExportFormat | null>(null);
 
   const colors = getThemeColors(theme);
 
@@ -32,6 +37,22 @@ export function ExportPanel() {
       return;
     }
 
+    // Check if user has a license or has provided email
+    const hasLicense = hasValidLicense();
+    const hasEmail = typeof window !== 'undefined' && localStorage.getItem('bas5minute_user_email');
+
+    // For free users without email, show email capture modal
+    if (!hasLicense && !hasEmail) {
+      setPendingExport(format);
+      setShowEmailCapture(true);
+      return;
+    }
+
+    // Proceed with export
+    await performExport(format);
+  };
+
+  const performExport = async (format: ExportFormat) => {
     setIsExporting(true);
 
     try {
@@ -71,13 +92,27 @@ export function ExportPanel() {
       const blob = await response.blob();
 
       // Download the file
-      const filename = generateExportFilename(format, location.city);
+      const filename = generateExportFilename(format, location?.city || 'map');
       downloadBlob(blob, filename);
+
+      // Track successful export
+      analytics.mapExported(format, shouldWatermark);
     } catch (error) {
       console.error('Export error:', error);
       alert('Failed to export image. Please try again.');
+
+      // Track export error
+      analytics.errorOccurred('export', error instanceof Error ? error.message : 'Unknown error');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleEmailSubmit = async (email: string) => {
+    // Email is now captured, proceed with pending export
+    if (pendingExport) {
+      await performExport(pendingExport);
+      setPendingExport(null);
     }
   };
 
@@ -178,6 +213,14 @@ export function ExportPanel() {
         </label>
       </div>
 
+      {/* Social Sharing */}
+      <div className="pt-4 border-t-2 border-gray-100">
+        <SocialShare
+          title={`Check out my Bas 5 Minute map from ${location?.city || 'India'}!`}
+          text={`I created this map showing how far you can travel in ${duration} minutes. ${caption}`}
+        />
+      </div>
+
       {/* Support Section */}
       <div className="pt-4 border-t-2 border-gray-100 space-y-3">
         <div className="text-center">
@@ -223,6 +266,14 @@ export function ExportPanel() {
           )}
         </div>
       )}
+
+      {/* Email Capture Modal */}
+      <EmailCaptureModal
+        isOpen={showEmailCapture}
+        onClose={() => setShowEmailCapture(false)}
+        onSubmit={handleEmailSubmit}
+        exportFormat={pendingExport ? exportFormats.find(f => f.format === pendingExport)?.label : 'your map'}
+      />
     </div>
   );
 }

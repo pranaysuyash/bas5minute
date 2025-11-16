@@ -10,6 +10,7 @@ import {
   IsochroneData,
 } from '@/types';
 import { fetchIsochrone } from '@/lib/api';
+import { analytics } from '@/lib/analytics';
 
 interface MapContextType extends MapState {
   setLocation: (location: Location | null) => void;
@@ -51,10 +52,12 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   const setTheme = useCallback((theme: ThemeName) => {
     setState((prev) => ({ ...prev, theme }));
+    analytics.themeChanged(theme);
   }, []);
 
   const setDesiMode = useCallback((enabled: boolean) => {
     setState((prev) => ({ ...prev, desiMode: enabled }));
+    analytics.desiModeToggled(enabled);
   }, []);
 
   const setCaption = useCallback((caption: string) => {
@@ -88,6 +91,9 @@ export function MapProvider({ children }: { children: ReactNode }) {
         isochroneData: data,
         isLoading: false,
       }));
+
+      // Track successful map generation
+      analytics.mapGenerated(state.mode, state.duration, state.theme);
     } catch (error) {
       console.error('Error generating isochrone:', error);
       setState((prev) => ({
@@ -95,6 +101,9 @@ export function MapProvider({ children }: { children: ReactNode }) {
         error: error instanceof Error ? error.message : 'Failed to generate map',
         isLoading: false,
       }));
+
+      // Track error
+      analytics.errorOccurred('map_generation', error instanceof Error ? error.message : 'Unknown error');
     }
   }, [state.location, state.mode, state.duration]);
 

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { analytics } from '@/lib/analytics';
 
 interface PricingTier {
   id: 'personal' | 'commercial' | 'enterprise';
@@ -78,11 +79,19 @@ const pricingTiers: PricingTier[] = [
 export default function PricingPage() {
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
+  // Track pricing page view
+  useEffect(() => {
+    analytics.viewPricing();
+  }, []);
+
   const handlePurchase = async (tierId: string) => {
     if (tierId === 'enterprise') {
       window.location.href = '/contact';
       return;
     }
+
+    // Track checkout initiation
+    analytics.initiateCheckout(tierId);
 
     setIsLoading(tierId);
 
@@ -111,6 +120,10 @@ export default function PricingPage() {
     } catch (error) {
       console.error('Payment error:', error);
       alert('Failed to initiate payment. Please try again.');
+
+      // Track payment error
+      analytics.errorOccurred('payment', error instanceof Error ? error.message : 'Unknown error');
+
       setIsLoading(null);
     }
   };

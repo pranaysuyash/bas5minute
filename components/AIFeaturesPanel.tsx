@@ -5,6 +5,7 @@ import { useMapContext } from '@/contexts/MapContext';
 import { getThemeColors } from '@/lib/themes';
 import { getAllFilters, FilterType } from '@/lib/filters';
 import { getStickerCategories, getStickersByCategory, StickerPlacement } from '@/lib/stickers';
+import { analytics } from '@/lib/analytics';
 
 export function AIFeaturesPanel() {
   const { theme, location, mode, duration, setCaption } = useMapContext();
@@ -47,9 +48,15 @@ export function AIFeaturesPanel() {
 
       const data = await response.json();
       setCaption(data.caption);
+
+      // Track successful AI caption generation
+      analytics.aiCaptionGenerated('anthropic', 'sarcastic');
     } catch (error) {
       console.error('AI caption error:', error);
       alert('Failed to generate AI caption. Check your API key configuration.');
+
+      // Track AI caption error
+      analytics.errorOccurred('ai_caption', error instanceof Error ? error.message : 'Unknown error');
     } finally {
       setIsGenerating(false);
     }
