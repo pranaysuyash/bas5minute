@@ -41,13 +41,52 @@ Transform the culturally iconic phrase "Bas 5 Minute" into stunning visual art. 
 - **Commercial License (₹2,999)** — AI features, advanced filters, business use, merchandise rights
 - **Enterprise License (₹9,999)** — API access, white-label, custom AI training, unlimited team
 
+## 💸 Cost Optimization (NEW!)
+
+**Run this app for $0/month!** 🎉
+
+We support both paid (Mapbox) and **100% free alternatives (MapLibre)**:
+
+| Service | Current Option | Free Alternative | Savings |
+|---------|----------------|------------------|---------|
+| **Maps** | Mapbox ($5-7 per 1k loads) | **MapLibre + Maptiler** (100k tiles free) | $50-100+/month |
+| **Isochrones** | OpenRouteService (60k/month free) | Already free! ✅ | $0 |
+
+**Total Cost: $0/month for up to 60,000 map generations**
+
+👉 See [COST_OPTIMIZATION.md](./COST_OPTIMIZATION.md) for detailed comparison
+👉 See [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) to switch to MapLibre (1-2 hours)
+
+### Quick Comparison
+
+**MapLibre GL JS (Recommended):**
+- ✅ 100% free, unlimited
+- ✅ Open source (fork of Mapbox GL v1.x)
+- ✅ Almost identical API to Mapbox
+- ✅ No API keys needed for OSM tiles
+- ✅ Free tile providers: Maptiler (100k/mo), Stadia Maps (200k/mo)
+
+**Mapbox GL JS (Current):**
+- ✅ Excellent ecosystem
+- ❌ Free tier: 50,000 loads/month
+- ❌ Paid after free tier
+
+**Result:** Save $600-7,000+/year at scale!
+
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Node.js 18+ and npm
 - **Required API Keys:**
-  - Mapbox API token ([Get here](https://www.mapbox.com/))
-  - OpenRouteService API key ([Get here](https://openrouteservice.org/))
+
+  **For Maps (choose one):**
+  - **Option A (FREE, Recommended):** Maptiler API key ([Get here](https://www.maptiler.com/cloud/)) - 100k tiles/month free
+  - **Option B (Paid):** Mapbox API token ([Get here](https://www.mapbox.com/)) - 50k loads/month free, then paid
+  - **Option C (Dev only):** OpenStreetMap tiles - No key needed, unlimited (fair use)
+
+  **For Isochrones:**
+  - OpenRouteService API key ([Get here](https://openrouteservice.org/)) - 60k/month free ✅
+
 - **Optional API Keys (for AI features):**
   - Anthropic API key ([Get here](https://console.anthropic.com/))
   - OpenAI API key ([Get here](https://platform.openai.com/))
@@ -75,8 +114,17 @@ Transform the culturally iconic phrase "Bas 5 Minute" into stunning visual art. 
 
    Edit `.env.local` and add your API keys:
    ```env
-   # Required
+   # Required - Maps (choose one):
+   # Option A: FREE - Maptiler (recommended)
+   NEXT_PUBLIC_MAPTILER_KEY=your_maptiler_key
+
+   # Option B: Paid - Mapbox (current default)
    NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token
+
+   # Option C: Dev only - OpenStreetMap (no key needed)
+   # Just use OSM tiles directly, no env var required
+
+   # Required - Isochrones
    NEXT_PUBLIC_ORS_API_KEY=your_ors_key
 
    # Optional - AI Features
@@ -98,6 +146,8 @@ Transform the culturally iconic phrase "Bas 5 Minute" into stunning visual art. 
    COMMERCIAL_LICENSE_PRICE=2999
    ENTERPRISE_LICENSE_PRICE=9999
    ```
+
+   **Note:** To use free MapLibre instead of Mapbox, see [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)
 
 4. **Run the development server**
    ```bash
@@ -170,13 +220,31 @@ AI analyzes location, city context, travel mode, and generates culturally-aware 
 
 ## 🛠️ Tech Stack
 
-Next.js 14, TypeScript, Tailwind CSS, Mapbox GL JS, OpenRouteService, Anthropic Claude/OpenAI GPT-4, Stripe, Framer Motion
+**Core:**
+- Next.js 14, TypeScript, Tailwind CSS, Framer Motion
+
+**Maps & Routing:**
+- MapLibre GL JS (recommended, free) or Mapbox GL JS (current)
+- OpenRouteService (isochrone calculations)
+- OpenStreetMap (map data)
+
+**AI & Payments:**
+- Anthropic Claude 3.5 Sonnet / OpenAI GPT-4
+- Stripe
+
+**Hosting:**
+- Vercel (recommended), Netlify, or self-hosted
 
 ## 🙏 Credits
 
 **Created by**: Pranay Suyash (2025)
 
-**Powered by**: OpenStreetMap, OpenRouteService, Mapbox, Anthropic, OpenAI, Stripe
+**Powered by**:
+- OpenStreetMap (map data)
+- OpenRouteService (routing engine)
+- MapLibre / Mapbox (map rendering)
+- Anthropic / OpenAI (AI captions)
+- Stripe (payments)
 
 ## 📞 Contact
 
