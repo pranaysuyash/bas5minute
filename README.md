@@ -2,11 +2,12 @@
 
 > **India's most optimistic unit of time — visualized with AI-powered creativity.**
 
-Transform the culturally iconic phrase "Bas 5 Minute" into stunning visual art. Create beautiful isochrone maps showing how far you can *actually* travel in 5 minutes (or 10, or 20...) from any location in India, enhanced with AI-generated captions, filters, and effects.
+Transform the culturally iconic phrase "Bas 5 Minute" into stunning visual art. Create beautiful isochrone maps showing how far you can _actually_ travel in 5 minutes (or 10, or 20...) from any location in India, enhanced with AI-generated captions, filters, and effects.
 
 ## ✨ Features
 
 ### 🎯 Core Functionality
+
 - **Interactive Map Visualization** — Real-time travel-time zones (isochrones) with beautiful rendering
 - **Multiple Travel Modes** — Choose between driving 🚗, walking 🚶, or cycling 🚴
 - **Flexible Time Durations** — 5, 10, 20, or 30 minutes
@@ -14,12 +15,14 @@ Transform the culturally iconic phrase "Bas 5 Minute" into stunning visual art. 
 - **Real-time Data** — Powered by OpenRouteService for accurate calculations
 
 ### 🤖 AI-Powered Features
+
 - **AI Caption Generation** — Anthropic Claude or OpenAI GPT generates witty, culturally-aware captions in Hinglish
 - **Smart Context Analysis** — AI considers location, city, traffic patterns, and travel mode
 - **Multiple Caption Styles** — Sarcastic, humorous, poetic, minimal, reality-check
 - **50+ Preset Captions** — Curated library of Indian traffic humor
 
 ### 🎨 Creative Tools
+
 - **10 Instagram-Style Filters** — Vintage, Vibrant, Noir, Warm, Cool, Retro, Neon, Dreamy, Dramatic
 - **Sticker System** — 30+ emojis and overlays (traffic, emotions, Indian culture, food)
 - **Sticker Presets** — Traffic Chaos, Frustrated Commute, Chai Break
@@ -27,6 +30,7 @@ Transform the culturally iconic phrase "Bas 5 Minute" into stunning visual art. 
 - **Desi Mode** 😄 — Maximum humor, minimum reality
 
 ### 📤 Export & Monetization
+
 - **Multiple Export Formats**:
   - Social Square (1080×1080) for Instagram/X/Threads
   - Story Vertical (1080×1920) for Stories/Reels
@@ -37,6 +41,7 @@ Transform the culturally iconic phrase "Bas 5 Minute" into stunning visual art. 
 - **Stripe Payment Integration** — Secure payment processing for licenses
 
 ### 💰 Licensing & Pricing
+
 - **Personal License (₹499)** — Unlimited exports without watermark for personal use
 - **Commercial License (₹2,999)** — AI features, advanced filters, business use, merchandise rights
 - **Enterprise License (₹9,999)** — API access, white-label, custom AI training, unlimited team
@@ -47,10 +52,10 @@ Transform the culturally iconic phrase "Bas 5 Minute" into stunning visual art. 
 
 We support both paid (Mapbox) and **100% free alternatives (MapLibre)**:
 
-| Service | Current Option | Free Alternative | Savings |
-|---------|----------------|------------------|---------|
-| **Maps** | Mapbox ($5-7 per 1k loads) | **MapLibre + Maptiler** (100k tiles free) | $50-100+/month |
-| **Isochrones** | OpenRouteService (60k/month free) | Already free! ✅ | $0 |
+| Service        | Current Option                    | Free Alternative                          | Savings        |
+| -------------- | --------------------------------- | ----------------------------------------- | -------------- |
+| **Maps**       | Mapbox ($5-7 per 1k loads)        | **MapLibre + Maptiler** (100k tiles free) | $50-100+/month |
+| **Isochrones** | OpenRouteService (60k/month free) | Already free! ✅                          | $0             |
 
 **Total Cost: $0/month for up to 60,000 map generations**
 
@@ -60,6 +65,7 @@ We support both paid (Mapbox) and **100% free alternatives (MapLibre)**:
 ### Quick Comparison
 
 **MapLibre GL JS (Recommended):**
+
 - ✅ 100% free, unlimited
 - ✅ Open source (fork of Mapbox GL v1.x)
 - ✅ Almost identical API to Mapbox
@@ -67,6 +73,7 @@ We support both paid (Mapbox) and **100% free alternatives (MapLibre)**:
 - ✅ Free tile providers: Maptiler (100k/mo), Stadia Maps (200k/mo)
 
 **Mapbox GL JS (Current):**
+
 - ✅ Excellent ecosystem
 - ❌ Free tier: 50,000 loads/month
 - ❌ Paid after free tier
@@ -76,6 +83,7 @@ We support both paid (Mapbox) and **100% free alternatives (MapLibre)**:
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ and npm
 - **Required API Keys:**
 
@@ -95,12 +103,14 @@ We support both paid (Mapbox) and **100% free alternatives (MapLibre)**:
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/pranaysuyash/bas5minute.git
    cd bas5minute
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
@@ -108,11 +118,13 @@ We support both paid (Mapbox) and **100% free alternatives (MapLibre)**:
 3. **Set up environment variables**
 
    Copy `.env.example` to `.env.local`:
+
    ```bash
    cp .env.example .env.local
    ```
 
    Edit `.env.local` and add your API keys:
+
    ```env
    # Required - Maps (choose one):
    # Option A: FREE - Maptiler (recommended)
@@ -150,12 +162,28 @@ We support both paid (Mapbox) and **100% free alternatives (MapLibre)**:
    **Note:** To use free MapLibre instead of Mapbox, see [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)
 
 4. **Run the development server**
+
    ```bash
    npm run dev
    ```
 
 5. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+   Navigate to [http://localhost:5111](http://localhost:5111)
+
+## 🧭 Map providers & fallbacks
+- You can choose which map provider to use in the **Advanced Options** of the Control Panel: **Mapbox**, **MapTiler**, or **MapLibre (OSM)**. This lets you test different providers during development.
+- Environment variables:
+  - `NEXT_PUBLIC_MAPBOX_TOKEN` for Mapbox
+  - `NEXT_PUBLIC_MAPTILER_KEY` for MapTiler
+- If a provider fails to load (missing/invalid token, CORS, etc.), the app will automatically fallback to the MapLibre demo tiles (`https://demotiles.maplibre.org/style.json`) so you can continue development without blocking on API keys.
+- To test providers locally, set your provider in the Control Panel -> Advanced Options, and watch the map switch immediately.
+
+## 🎛️ AI panel responsiveness & controls
+- On large screens (lg+), the AI panel appears in the right column and is sticky for quick access. On small screens it appears below the map.
+- On XL screens you can adjust the panel width with the slider in the AI panel (320–520px) for better visual balance.
+- You can collapse the AI panel (Collapse button) to maximize map space; a small handle remains to expand it back.
+
+These features improve development workflow and responsiveness so you can test without API keys and avoid unnecessary scrolling.
 
 ## 🏗️ Project Structure
 
@@ -201,6 +229,7 @@ bas5minute/
 AI analyzes location, city context, travel mode, and generates culturally-aware Hinglish captions.
 
 **Example outputs:**
+
 - "Bhai bolta 5 min, Bangalore traffic bolta 45 😅"
 - "GPS gave up halfway"
 - "Your rickshaw uncle's favorite number: 5"
@@ -211,28 +240,32 @@ AI analyzes location, city context, travel mode, and generates culturally-aware 
 
 ## 💳 Pricing
 
-| Plan | Price | AI | Filters | Watermark | Use |
-|------|-------|----|----|---------|-----|
-| **Free** | ₹0 | ✗ | ✗ | ✓ | Personal with watermark |
-| **Personal** | ₹499 | ✗ | ✗ | ✗ | Personal without watermark |
-| **Commercial** | ₹2,999 | ✓ | ✓ | ✗ | Business + merchandise |
-| **Enterprise** | ₹9,999 | ✓ | ✓ | ✗ | API + white-label |
+| Plan           | Price  | AI  | Filters | Watermark | Use                        |
+| -------------- | ------ | --- | ------- | --------- | -------------------------- |
+| **Free**       | ₹0     | ✗   | ✗       | ✓         | Personal with watermark    |
+| **Personal**   | ₹499   | ✗   | ✗       | ✗         | Personal without watermark |
+| **Commercial** | ₹2,999 | ✓   | ✓       | ✗         | Business + merchandise     |
+| **Enterprise** | ₹9,999 | ✓   | ✓       | ✗         | API + white-label          |
 
 ## 🛠️ Tech Stack
 
 **Core:**
+
 - Next.js 14, TypeScript, Tailwind CSS, Framer Motion
 
 **Maps & Routing:**
+
 - MapLibre GL JS (recommended, free) or Mapbox GL JS (current)
 - OpenRouteService (isochrone calculations)
 - OpenStreetMap (map data)
 
 **AI & Payments:**
+
 - Anthropic Claude 3.5 Sonnet / OpenAI GPT-4
 - Stripe
 
 **Hosting:**
+
 - Vercel (recommended), Netlify, or self-hosted
 
 ## 🙏 Credits
@@ -240,6 +273,7 @@ AI analyzes location, city context, travel mode, and generates culturally-aware 
 **Created by**: Pranay Suyash (2025)
 
 **Powered by**:
+
 - OpenStreetMap (map data)
 - OpenRouteService (routing engine)
 - MapLibre / Mapbox (map rendering)

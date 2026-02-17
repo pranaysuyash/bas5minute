@@ -3,14 +3,16 @@
 import React, { useState } from 'react';
 import { toPng, toJpeg } from 'html-to-image';
 import { useMapContext } from '@/contexts/MapContext';
-import { ExportFormat } from '@/types';
-import { downloadBlob, generateExportFilename, formatCoordinates, formatTimestamp } from '@/lib/utils';
+import { ExportFinishStyle, ExportFormat, ExportTemplate } from '@/types';
+import { calculateActualTime, downloadBlob, formatCoordinates, formatTimestamp, generateExportFilename, getCityTrafficMultiplier } from '@/lib/utils';
 import { getThemeColors } from '@/lib/themes';
 import { replacePlaceholders } from '@/lib/captions';
 import { addWatermarkToDataURL, hasValidLicense, getWatermarkText } from '@/lib/watermark';
 import { analytics } from '@/lib/analytics';
 import { SocialShare } from './SocialShare';
 import { EmailCaptureModal } from './EmailCaptureModal';
+import { applyFilterToDataURL } from '@/lib/filters';
+import { applyFinishStyleToDataURL } from '@/lib/finishStyles';
 
 export function ExportPanel() {
   const {
@@ -20,12 +22,19 @@ export function ExportPanel() {
     theme,
     caption,
     isochroneData,
+    exportTemplate,
+    setExportTemplate,
+    exportFilter,
+    exportFinishStyle,
+    setExportFinishStyle,
+    exportIncludeCoordinates,
+    setExportIncludeCoordinates,
+    exportIncludeTimestamp,
+    setExportIncludeTimestamp,
   } = useMapContext();
 
   const [isExporting, setIsExporting] = useState(false);
   const [includeWatermark, setIncludeWatermark] = useState(true);
-  const [includeCoordinates, setIncludeCoordinates] = useState(false);
-  const [includeTimestamp, setIncludeTimestamp] = useState(false);
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [pendingExport, setPendingExport] = useState<ExportFormat | null>(null);
 
@@ -74,6 +83,12 @@ export function ExportPanel() {
           quality: 0.95,
           pixelRatio: 2,
         });
+      }
+
+      // Post-processing (filters + finish styles). Skip for transparent exports.
+      if (format !== 'transparent-png') {
+        dataUrl = await applyFilterToDataURL(dataUrl, exportFilter);
+        dataUrl = await applyFinishStyleToDataURL(dataUrl, exportFinishStyle);
       }
 
       // Add watermark if user doesn't have a license
@@ -145,8 +160,38 @@ export function ExportPanel() {
   ];
 
   if (!isochroneData) {
-    return null;
+    // Show placeholder when no isochrone data yet
+    return (
+      <div className="bg-white rounded-2xl shadow-xl p-6 space-y-4 max-w-md">
+        <div className="text-center">
+          <h2 className="text-2xl font-display font-black text-gray-400">
+            Export Your Map
+          </h2>
+          <p className="text-sm text-gray-400 mt-2">
+            Generate a map first to enable export options
+          </p>
+        </div>
+      </div>
+    );
   }
+
+  const actualMinutes = calculateActualTime(duration, mode, getCityTrafficMultiplier(location?.city));
+  const displayCaption = replacePlaceholders(caption, actualMinutes);
+
+  const templates: { id: ExportTemplate; label: string; description: string }[] = [
+    { id: 'map', label: 'Map Only', description: 'No poster overlay' },
+    { id: 'clean', label: 'Clean', description: 'Minimal badge + caption' },
+    { id: 'bollywood', label: 'Bollywood', description: 'Pop poster vibes' },
+    { id: 'monsoon', label: 'Monsoon', description: 'Paper + ink texture' },
+    { id: 'neon', label: 'Neon', description: 'Night glow aesthetic' },
+  ];
+
+  const finishStyles: { id: ExportFinishStyle; label: string; description: string }[] = [
+    { id: 'none', label: 'None', description: 'No post-processing' },
+    { id: 'studio-paper', label: 'Studio Paper', description: 'Subtle grain + vignette' },
+    { id: 'studio-neon', label: 'Studio Neon', description: 'Soft glow + vignette' },
+    { id: 'studio-veins', label: 'Road Veins', description: 'Edge-detected linework for prints' },
+  ];
 
   return (
     <div className="bg-white rounded-2xl shadow-2xl p-6 space-y-6 max-w-md">
@@ -182,6 +227,53 @@ export function ExportPanel() {
       <div className="space-y-3 pt-4 border-t-2 border-gray-100">
         <div className="text-sm font-bold text-gray-700 mb-2">Export Settings</div>
 
+        <div className="space-y-2">
+          <div className="text-xs font-bold text-gray-600 uppercase">Poster template</div>
+          <div className="grid grid-cols-2 gap-2">
+            {templates.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setExportTemplate(t.id)}
+                className={`p-3 rounded-lg border-2 text-left transition ${
+                  exportTemplate === t.id ? 'border-current shadow-sm' : 'border-gray-200 hover:border-gray-300'
+                }`}
+                style={exportTemplate === t.id ? { borderColor: colors.primary } : {}}
+                title={t.description}
+              >
+                <div className="text-sm font-bold text-gray-900">{t.label}</div>
+                <div className="text-[11px] text-gray-500">{t.description}</div>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500">
+            Templates are visible on the map preview and captured in exports.
+          </p>
+        </div>
+
+        <div className="space-y-2 pt-2">
+          <div className="text-xs font-bold text-gray-600 uppercase">Finish style</div>
+          <div className="grid grid-cols-3 gap-2">
+            {finishStyles.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setExportFinishStyle(s.id)}
+                className={`p-3 rounded-lg border-2 text-center transition ${
+                  exportFinishStyle === s.id ? 'border-current shadow-sm' : 'border-gray-200 hover:border-gray-300'
+                }`}
+                style={exportFinishStyle === s.id ? { borderColor: colors.secondary } : {}}
+                title={s.description}
+              >
+                <div className="text-xs font-bold text-gray-900">{s.label}</div>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500">
+            This is the “styling pass” hook where we can later plug in Qwen Edit/Layer or Nanobanana.
+          </p>
+        </div>
+
         <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer">
           <span className="text-sm text-gray-700">Include watermark</span>
           <input
@@ -196,8 +288,8 @@ export function ExportPanel() {
           <span className="text-sm text-gray-700">Include coordinates</span>
           <input
             type="checkbox"
-            checked={includeCoordinates}
-            onChange={(e) => setIncludeCoordinates(e.target.checked)}
+            checked={exportIncludeCoordinates}
+            onChange={(e) => setExportIncludeCoordinates(e.target.checked)}
             className="w-5 h-5 accent-blue-500"
           />
         </label>
@@ -206,8 +298,8 @@ export function ExportPanel() {
           <span className="text-sm text-gray-700">Include timestamp</span>
           <input
             type="checkbox"
-            checked={includeTimestamp}
-            onChange={(e) => setIncludeTimestamp(e.target.checked)}
+            checked={exportIncludeTimestamp}
+            onChange={(e) => setExportIncludeTimestamp(e.target.checked)}
             className="w-5 h-5 accent-blue-500"
           />
         </label>
@@ -217,7 +309,7 @@ export function ExportPanel() {
       <div className="pt-4 border-t-2 border-gray-100">
         <SocialShare
           title={`Check out my Bas 5 Minute map from ${location?.city || 'India'}!`}
-          text={`I created this map showing how far you can travel in ${duration} minutes. ${caption}`}
+          text={`I created this map showing how far you can travel in ${duration} minutes. ${displayCaption}`}
         />
       </div>
 
@@ -258,10 +350,10 @@ export function ExportPanel() {
       {/* Preview Info */}
       {location && (
         <div className="text-center text-xs text-gray-500 space-y-1">
-          {includeCoordinates && (
+          {exportIncludeCoordinates && (
             <div>{formatCoordinates(location.lat, location.lng)}</div>
           )}
-          {includeTimestamp && (
+          {exportIncludeTimestamp && (
             <div>{formatTimestamp()}</div>
           )}
         </div>

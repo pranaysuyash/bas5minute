@@ -6,7 +6,29 @@ export type TimeDuration = 5 | 10 | 20 | 30;
 
 export type ThemeName = 'bollywood' | 'monsoon' | 'sandstone' | 'neon';
 
+export type MapProvider = 'osm-liberty' | 'carto-voyager' | 'carto-positron' | 'carto-dark' | 'mapbox' | 'maptiler' | 'maplibre';
+
 export type ExportFormat = 'social-square' | 'story-vertical' | 'poster-a4' | 'poster-a3' | 'transparent-png';
+
+export type IsochroneProvider = 'ors' | 'valhalla' | 'backend';
+
+export type ExportTemplate = 'map' | 'clean' | 'bollywood' | 'monsoon' | 'neon';
+
+export type ExportFinishStyle = 'none' | 'studio-paper' | 'studio-neon' | 'studio-veins';
+
+export type AIImageProvider = 'gemini' | 'fal' | 'replicate' | 'huggingface';
+
+export type FilterType =
+  | 'none'
+  | 'vintage'
+  | 'vibrant'
+  | 'noir'
+  | 'warm'
+  | 'cool'
+  | 'retro'
+  | 'neon'
+  | 'dreamy'
+  | 'dramatic';
 
 export interface Theme {
   name: ThemeName;
@@ -32,19 +54,21 @@ export interface IsochroneParams {
   location: Location;
   mode: TravelMode;
   duration: TimeDuration;
+  smoothing?: number;
+  provider?: IsochroneProvider;
 }
 
 export interface IsochroneData {
   type: 'FeatureCollection';
   features: Array<{
     type: 'Feature';
-    properties: {
-      value: number;
-      center: [number, number];
+    properties: Record<string, unknown> & {
+      value?: number;
+      center?: [number, number];
     };
     geometry: {
-      type: 'Polygon';
-      coordinates: number[][][];
+      type: 'Polygon' | 'MultiPolygon';
+      coordinates: number[][][] | number[][][][];
     };
   }>;
 }
@@ -66,6 +90,16 @@ export interface MapState {
   isLoading: boolean;
   error: string | null;
   isochroneData: IsochroneData | null;
+  mapProvider?: string;
+  isoProvider?: string;
+  geocodingProvider?: string;
+  isochroneSmoothing: number;
+  exportTemplate: ExportTemplate;
+  exportFilter: FilterType;
+  exportFinishStyle: ExportFinishStyle;
+  exportIncludeCoordinates: boolean;
+  exportIncludeTimestamp: boolean;
+  aiImageProvider: AIImageProvider;
 }
 
 export interface ExportOptions {

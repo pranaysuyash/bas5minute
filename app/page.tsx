@@ -1,15 +1,68 @@
 'use client';
 
-import React from 'react';
-import { MapProvider } from '@/contexts/MapContext';
+import React, { useEffect } from 'react';
+import { MapProvider, useMapContext } from '@/contexts/MapContext';
 import { MapView } from '@/components/MapView';
 import { ControlPanel } from '@/components/ControlPanel';
 import { ExportPanel } from '@/components/ExportPanel';
 import { AIFeaturesPanel } from '@/components/AIFeaturesPanel';
+import { ServiceMetricsPanel } from '@/components/ServiceMetricsPanel';
+import { StatsPanel } from '@/components/StatsPanel';
+import { ComparePanel } from '@/components/ComparePanel';
+import type { TravelMode, TimeDuration, ThemeName } from '@/types';
+
+function UrlParamsHandler() {
+  const { setLocation, setMode, setDuration, setTheme, setDesiMode, generateIsochrone, location } = useMapContext();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const params = new URLSearchParams(window.location.search);
+    const lat = params.get('lat');
+    const lng = params.get('lng');
+    const addr = params.get('addr');
+    const city = params.get('city');
+    const mode = params.get('mode') as TravelMode | null;
+    const dur = params.get('dur');
+    const theme = params.get('theme') as ThemeName | null;
+    const desi = params.get('desi');
+
+    if (lat && lng) {
+      const loc = {
+        lat: parseFloat(lat),
+        lng: parseFloat(lng),
+        address: addr ? decodeURIComponent(addr) : undefined,
+        city: city ? decodeURIComponent(city) : undefined,
+      };
+      setLocation(loc);
+      
+      if (mode && ['driving', 'walking', 'cycling'].includes(mode)) {
+        setMode(mode);
+      }
+      if (dur && [5, 10, 20, 30].includes(parseInt(dur))) {
+        setDuration(parseInt(dur) as TimeDuration);
+      }
+      if (theme && ['bollywood', 'monsoon', 'sandstone', 'neon'].includes(theme)) {
+        setTheme(theme);
+      }
+      if (desi === '1') {
+        setDesiMode(true);
+      }
+      
+      // Auto-generate isochrone after a short delay
+      setTimeout(() => {
+        generateIsochrone();
+      }, 500);
+    }
+  }, [setLocation, setMode, setDuration, setTheme, setDesiMode, generateIsochrone]);
+
+  return null;
+}
 
 export default function Home() {
   return (
     <MapProvider>
+      <UrlParamsHandler />
       <main className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-blue-50">
         {/* Header */}
         <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
@@ -57,7 +110,7 @@ export default function Home() {
         </header>
 
         {/* Hero Section */}
-        <section className="container mx-auto px-4 py-12 text-center">
+        <section className="container mx-auto px-4 py-10 text-center">
           <h2 className="text-5xl md:text-7xl font-display font-black mb-4 bg-gradient-to-r from-pink-600 via-orange-500 to-blue-600 bg-clip-text text-transparent">
             Everything is 5 minutes away.
           </h2>
@@ -72,36 +125,45 @@ export default function Home() {
 
         {/* Main Content */}
         <div className="container mx-auto px-4 pb-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             {/* Control Panel */}
-            <div className="lg:col-span-4 xl:col-span-3">
+            <div className="md:col-span-4 lg:col-span-4 xl:col-span-3">
               <div className="sticky top-24 space-y-6">
                 <ControlPanel />
+                <ComparePanel />
+                <StatsPanel />
+
+                {/* Mid-size screens: keep AI+Export alongside map (not below) */}
+                <div className="hidden md:block lg:hidden space-y-6">
+                  <AIFeaturesPanel />
+                  <ExportPanel />
+                </div>
               </div>
             </div>
 
             {/* Map View */}
-            <div className="lg:col-span-8 xl:col-span-6">
+            <div className="md:col-span-8 lg:col-span-8 xl:col-span-6">
               <div
                 id="map-export-container"
-                className="bg-white rounded-2xl shadow-2xl overflow-hidden"
-                style={{ height: '600px' }}
+                className="bg-white rounded-2xl shadow-2xl overflow-hidden h-[55vh] min-h-[520px] md:h-[calc(100vh-220px)] lg:h-[calc(100vh-260px)]"
               >
                 <MapView />
               </div>
 
               {/* Mobile-only spacing */}
-              <div className="lg:hidden h-6" />
+              <div className="md:hidden h-6" />
 
-              {/* AI Features Panel - Below map on mobile/desktop */}
-              <div className="mt-6">
+              {/* Small screens: show panels below map */}
+              <div className="mt-6 md:hidden space-y-6">
                 <AIFeaturesPanel />
+                <ExportPanel />
               </div>
             </div>
 
-            {/* Export Panel */}
-            <div className="lg:col-span-4 xl:col-span-3">
-              <div className="sticky top-24">
+            {/* Right Column: Export + AI (AI moves here on lg+) */}
+            <div className="hidden lg:block lg:col-span-4 xl:col-span-3">
+              <div className="sticky top-24 space-y-6">
+                <AIFeaturesPanel />
                 <ExportPanel />
               </div>
             </div>
@@ -260,7 +322,6 @@ export default function Home() {
                 </div>
               </div>
             </div>
-
             <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-500">
               <p>
                 © {new Date().getFullYear()} Bas 5 Minute. Built with ❤️ and traffic frustration.
@@ -271,6 +332,9 @@ export default function Home() {
             </div>
           </div>
         </footer>
+
+        {/* Service Metrics Dashboard (Dev Mode) */}
+        {process.env.NODE_ENV === 'development' && <ServiceMetricsPanel />}
       </main>
     </MapProvider>
   );

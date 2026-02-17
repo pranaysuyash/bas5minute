@@ -71,6 +71,10 @@ export const analytics = {
     trackEvent('ai_caption_generated', 'ai_features', `${provider}-${style}`);
   },
 
+  aiVisualsGenerated: (count: number) => {
+    trackEvent('ai_visuals_generated', 'ai_features', `count:${count}`);
+  },
+
   // Export events
   mapExported: (format: string, hasWatermark: boolean) => {
     trackEvent('map_exported', 'engagement', `${format}-watermark:${hasWatermark}`);

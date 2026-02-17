@@ -13,6 +13,16 @@ Complete guide to all documentation for **Bas 5 Minute**.
 
 ---
 
+## 🆕 NEW Documentation (January 2026)
+
+| Document | Purpose | Audience |
+|----------|---------|----------|
+| **[TECHNICAL_DOCS.md](./TECHNICAL_DOCS.md)** | Complete technical reference | Developers |
+| **[UX_AUDIT.md](./UX_AUDIT.md)** | UX/UI critique & personas | Designers, PMs |
+| **[FEATURE_IDEAS.md](./FEATURE_IDEAS.md)** | 20+ unique feature ideas | Product, Founders |
+
+---
+
 ## 📖 Core Documentation
 
 ### [README.md](./README.md)
@@ -144,6 +154,65 @@ Complete guide to all documentation for **Bas 5 Minute**.
 
 ---
 
+### [TECHNICAL_DOCS.md](./TECHNICAL_DOCS.md) 🆕
+**What it contains:**
+- Complete architecture overview with diagrams
+- All TypeScript types documented
+- Component reference (props, state, usage)
+- API endpoint documentation
+- Library module documentation (themes, captions, filters, stickers, etc.)
+- State management (MapContext)
+- Third-party integration details
+- Environment configuration reference
+- Known issues and bugs
+
+**Read this if:**
+- You're a developer working on the codebase
+- You need API documentation
+- You want to understand the type system
+- You're debugging or extending features
+
+---
+
+### [UX_AUDIT.md](./UX_AUDIT.md) 🆕
+**What it contains:**
+- 4 user personas (Social Creator, NRI, Commuter, Gift Buyer)
+- UI/UX critique of every major component
+- Severity-rated issues with recommendations
+- User journey analysis
+- Conversion funnel issues
+- Mobile responsiveness audit
+- Prioritized recommendations (P0-P3)
+- Competitive analysis
+- Information architecture suggestions
+
+**Read this if:**
+- You're a designer or PM
+- You want to improve user experience
+- You're prioritizing bug fixes
+- You need to understand user needs
+
+---
+
+### [FEATURE_IDEAS.md](./FEATURE_IDEAS.md) 🆕
+**What it contains:**
+- Top 5 high-impact feature ideas
+- 20+ creative feature concepts
+- Viral/social features (5-Minute Challenge, City Leaderboard)
+- Gamification ideas (Optimism Score, Traffic Bingo)
+- Data visualization concepts
+- Real-world integrations (Calendar, WhatsApp)
+- Monetization opportunities
+- Implementation priorities
+
+**Read this if:**
+- You're planning the product roadmap
+- You want to increase virality
+- You need unique differentiators
+- You're looking for quick wins
+
+---
+
 ## 🚀 Deployment
 
 ### [DEPLOYMENT.md](./DEPLOYMENT.md)
@@ -258,8 +327,11 @@ Complete guide to all documentation for **Bas 5 Minute**.
 | FREE_ALTERNATIVES.md | 490 | Service Research | 2025-01-19 |
 | MIGRATION_GUIDE.md | 650+ | Migration Steps | 2025-01-19 |
 | DEPLOYMENT.md | 496 | Deployment Guide | 2025-01-19 |
+| **TECHNICAL_DOCS.md** 🆕 | 850+ | Technical Reference | 2026-01-19 |
+| **UX_AUDIT.md** 🆕 | 450+ | UX/UI Critique | 2026-01-19 |
+| **FEATURE_IDEAS.md** 🆕 | 500+ | Feature Ideas | 2026-01-19 |
 
-**Total Documentation:** 4,500+ lines
+**Total Documentation:** 6,300+ lines
 
 ---
 
@@ -273,6 +345,12 @@ README.md (Entry point)
 ├── STATUS.md (Current state)
 │   ├── FEATURES.md (Feature details)
 │   └── AUDIT.md (Deep analysis)
+├── TECHNICAL_DOCS.md 🆕 (Developer reference)
+│   └── Types, Components, APIs, Libraries
+├── UX_AUDIT.md 🆕 (Design & UX)
+│   └── Personas, Critiques, Recommendations
+├── FEATURE_IDEAS.md 🆕 (Product roadmap)
+│   └── Viral features, Gamification, Monetization
 └── DEPLOYMENT.md (Production deployment)
     └── COST_OPTIMIZATION.md (Cost considerations)
 ```

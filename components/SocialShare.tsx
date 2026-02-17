@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useMapContext } from '@/contexts/MapContext';
 import { analytics } from '@/lib/analytics';
+import { calculateIsochroneAreaSqKm, calculateRealityScore } from '@/lib/utils';
 
 interface SocialShareProps {
   title?: string;
@@ -16,11 +18,39 @@ export function SocialShare({
   url,
   className = '',
 }: SocialShareProps) {
+  const { location, mode, duration, theme, caption, isochroneData, desiMode } = useMapContext();
   const [copied, setCopied] = useState(false);
-  const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
+  const [shareUrl, setShareUrl] = useState(url || '');
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined' && location) {
+      const params = new URLSearchParams();
+      params.set('lat', location.lat.toString());
+      params.set('lng', location.lng.toString());
+      if (location.address) params.set('addr', encodeURIComponent(location.address));
+      if (location.city) params.set('city', encodeURIComponent(location.city));
+      params.set('mode', mode);
+      params.set('dur', duration.toString());
+      params.set('theme', theme);
+      if (desiMode) params.set('desi', '1');
+      
+      setShareUrl(`${window.location.origin}${window.location.pathname}?${params.toString()}`);
+    }
+  }, [location, mode, duration, theme, desiMode]);
+  
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(title);
   const encodedText = encodeURIComponent(text);
+  
+  // Generate dynamic share text based on reality score
+  const getShareText = () => {
+    if (!isochroneData || !location) return text;
+    
+    const area = calculateIsochroneAreaSqKm(isochroneData);
+    const reality = calculateRealityScore(duration, area, mode, location.city);
+    
+    return `My "Bas 5 Minute" map from ${location.city || 'India'}: ${reality.score}% reality score! 🚗💨\n\n"${caption}"\n\nSee how far YOU can actually travel in ${duration} minutes:`;
+  };
 
   const handleShare = (platform: string, shareFunction: () => void) => {
     analytics.socialShare(platform);
@@ -28,9 +58,9 @@ export function SocialShare({
   };
 
   const shareLinks = {
-    twitter: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}&hashtags=Bas5Minute,IndianTraffic`,
+    twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(getShareText())}&url=${encodedUrl}&hashtags=Bas5Minute,IndianTraffic`,
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-    whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(getShareText())}%20${encodedUrl}`,
     linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
     reddit: `https://reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`,
   };
@@ -46,7 +76,7 @@ export function SocialShare({
       try {
         await navigator.share({
           title,
-          text,
+          text: getShareText(),
           url: shareUrl,
         });
         analytics.socialShare('native');

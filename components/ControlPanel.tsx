@@ -23,6 +23,14 @@ export function ControlPanel() {
     setDesiMode,
     generateIsochrone,
     clearError,
+    mapProvider,
+    setMapProvider,
+    isoProvider,
+    setIsoProvider,
+    geocodingProvider,
+    setGeocodingProvider,
+    isochroneSmoothing,
+    setIsochroneSmoothing,
   } = useMapContext();
 
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -163,6 +171,153 @@ export function ControlPanel() {
               Caption
             </label>
             <CaptionEditor />
+          </div>
+
+          {/* Map Provider selection */}
+          <div className="space-y-2 pt-2">
+            <label className="block text-sm font-bold text-gray-700">Map Provider</label>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <label className="inline-flex items-center space-x-2 p-2 rounded border hover:bg-gray-50 cursor-pointer">
+                <input
+                  type="radio"
+                  name="mapProvider"
+                  value="osm-liberty"
+                  checked={mapProvider === 'osm-liberty' || mapProvider === 'maplibre'}
+                  onChange={() => setMapProvider && setMapProvider('osm-liberty')}
+                />
+                <span>OSM Liberty</span>
+                <span className="text-xs text-green-500">FREE</span>
+              </label>
+
+              <label className="inline-flex items-center space-x-2 p-2 rounded border hover:bg-gray-50 cursor-pointer">
+                <input
+                  type="radio"
+                  name="mapProvider"
+                  value="carto-voyager"
+                  checked={mapProvider === 'carto-voyager'}
+                  onChange={() => setMapProvider && setMapProvider('carto-voyager')}
+                />
+                <span>CartoDB Voyager</span>
+                <span className="text-xs text-green-500">FREE</span>
+              </label>
+
+              <label className="inline-flex items-center space-x-2 p-2 rounded border hover:bg-gray-50 cursor-pointer">
+                <input
+                  type="radio"
+                  name="mapProvider"
+                  value="carto-dark"
+                  checked={mapProvider === 'carto-dark'}
+                  onChange={() => setMapProvider && setMapProvider('carto-dark')}
+                />
+                <span>CartoDB Dark</span>
+                <span className="text-xs text-green-500">FREE</span>
+              </label>
+
+              <label className="inline-flex items-center space-x-2 p-2 rounded border hover:bg-gray-50 cursor-pointer">
+                <input
+                  type="radio"
+                  name="mapProvider"
+                  value="mapbox"
+                  checked={mapProvider === 'mapbox'}
+                  onChange={() => setMapProvider && setMapProvider('mapbox')}
+                />
+                <span>Mapbox</span>
+                <span className="text-xs text-gray-400">{process.env.NEXT_PUBLIC_MAPBOX_TOKEN ? '✓' : '✗'}</span>
+              </label>
+            </div>
+            <p className="text-xs text-gray-500">OSM Liberty & CartoDB work without any API key!</p>
+          </div>
+
+          {/* Isochrone Provider selection (dev/testing) */}
+          <div className="space-y-2 pt-2">
+            <label className="block text-sm font-bold text-gray-700">Isochrone Provider</label>
+            <div className="flex items-center space-x-3 text-sm">
+              <label className="inline-flex items-center space-x-2">
+                <input
+                  type="radio"
+                  name="isoProvider"
+                  value="ors"
+                  checked={isoProvider === 'ors'}
+                  onChange={() => setIsoProvider && setIsoProvider('ors')}
+                />
+                <span>OpenRouteService</span>
+                <span className="ml-2 text-xs text-gray-400">{process.env.NEXT_PUBLIC_ORS_API_KEY ? 'configured' : 'not configured'}</span>
+              </label>
+
+              <label className="inline-flex items-center space-x-2">
+                <input
+                  type="radio"
+                  name="isoProvider"
+                  value="valhalla"
+                  checked={isoProvider === 'valhalla'}
+                  onChange={() => setIsoProvider && setIsoProvider('valhalla')}
+                />
+                <span>Valhalla</span>
+                <span className="ml-2 text-xs text-gray-400">server env</span>
+              </label>
+
+              <label className="inline-flex items-center space-x-2">
+                <input
+                  type="radio"
+                  name="isoProvider"
+                  value="backend"
+                  checked={isoProvider === 'backend'}
+                  onChange={() => setIsoProvider && setIsoProvider('backend')}
+                />
+                <span>Backend Proxy</span>
+                <span className="ml-2 text-xs text-gray-400">fallback</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Isochrone smoothing */}
+          <div className="space-y-2 pt-2">
+            <label className="block text-sm font-bold text-gray-700">Isochrone Smoothing</label>
+            <div className="flex items-center space-x-3">
+              <input
+                type="range"
+                min={0}
+                max={20}
+                step={1}
+                value={isochroneSmoothing}
+                onChange={(e) => setIsochroneSmoothing(Number(e.target.value))}
+                className="w-full"
+              />
+              <div className="text-xs text-gray-500 w-10 text-right">{isochroneSmoothing}</div>
+            </div>
+            <p className="text-xs text-gray-500">
+              0 = most detailed (jagged). Higher values smooth the boundary while staying road-based.
+            </p>
+          </div>
+
+          {/* Geocoding Provider selection (dev/testing) */}
+          <div className="space-y-2 pt-2">
+            <label className="block text-sm font-bold text-gray-700">Geocoding Provider</label>
+            <div className="flex items-center space-x-3 text-sm">
+              <label className="inline-flex items-center space-x-2">
+                <input
+                  type="radio"
+                  name="geocodingProvider"
+                  value="nominatim"
+                  checked={geocodingProvider === 'nominatim'}
+                  onChange={() => setGeocodingProvider && setGeocodingProvider('nominatim')}
+                />
+                <span>Nominatim (OSM)</span>
+                <span className="ml-2 text-xs text-gray-400">default</span>
+              </label>
+
+              <label className="inline-flex items-center space-x-2">
+                <input
+                  type="radio"
+                  name="geocodingProvider"
+                  value="backend"
+                  checked={geocodingProvider === 'backend'}
+                  onChange={() => setGeocodingProvider && setGeocodingProvider('backend')}
+                />
+                <span>Backend Proxy</span>
+                <span className="ml-2 text-xs text-gray-400">fallback</span>
+              </label>
+            </div>
           </div>
         </div>
       )}

@@ -3,17 +3,8 @@
  * Inspired by Instagram-style filters and LoRA-style effects
  */
 
-export type FilterType =
-  | 'none'
-  | 'vintage'
-  | 'vibrant'
-  | 'noir'
-  | 'warm'
-  | 'cool'
-  | 'retro'
-  | 'neon'
-  | 'dreamy'
-  | 'dramatic';
+import type { FilterType } from '@/types';
+export type { FilterType } from '@/types';
 
 export interface FilterConfig {
   name: string;
@@ -248,4 +239,27 @@ export function getCSSFilter(filterType: FilterType): string {
  */
 export function getAllFilters(): FilterConfig[] {
   return Object.values(filters);
+}
+
+export async function applyFilterToDataURL(
+  dataUrl: string,
+  filterType: FilterType
+): Promise<string> {
+  if (filterType === 'none') return dataUrl;
+
+  const img = new Image();
+  img.decoding = 'async';
+  img.src = dataUrl;
+  await img.decode();
+
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth || img.width;
+  canvas.height = img.naturalHeight || img.height;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return dataUrl;
+
+  ctx.drawImage(img, 0, 0);
+  applyCanvasFilter(canvas, filterType);
+  return canvas.toDataURL('image/png');
 }
