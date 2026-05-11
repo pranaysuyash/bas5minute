@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const ORS_API_BASE = 'https://api.openrouteservice.org';
 const VALHALLA_URL = 'https://valhalla1.openstreetmap.de/isochrone';
+const ISOCHRONE_PRIMARY = process.env.ISOCHRONE_PRIMARY || 'ors';
+const ALLOW_PUBLIC_VALHALLA_FALLBACK = process.env.ALLOW_PUBLIC_VALHALLA_FALLBACK === '1';
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
@@ -96,36 +98,50 @@ export async function POST(request: NextRequest) {
     const [lng, lat] = locations[0] as [number, number];
     const seconds = range[0] as number;
 
-    // Determine provider priority
     const useProvider = provider || 'auto';
-
-    // Try ORS first (if key available)
-    if ((useProvider === 'auto' || useProvider === 'ors') && orsApiKey) {
-      try {
-        const orsResult = await tryORS(profile, [lng, lat], seconds, smoothingValue, orsApiKey);
-        if (orsResult) {
-          orsResult.provider = 'ors';
-          const res = NextResponse.json(orsResult);
-          res.headers.set('Cache-Control', 's-maxage=600, stale-while-revalidate=60');
-          return res;
-        }
-      } catch (err) {
-        console.warn('[ISOCHRONE] ORS failed, trying fallback:', err);
-      }
+    if (useProvider === 'backend') {
+      return NextResponse.json(
+        { error: 'Use /api/isochrone/backend for backend provider requests' },
+        { status: 400 }
+      );
     }
+    const providerOrder =
+      useProvider === 'ors'
+        ? ['ors']
+        : useProvider === 'valhalla'
+        ? ['valhalla']
+        : ISOCHRONE_PRIMARY === 'valhalla'
+        ? ['valhalla', 'ors']
+        : ['ors', 'valhalla'];
 
-    // Try Valhalla (free, no API key)
-    if (useProvider === 'auto' || useProvider === 'valhalla') {
-      try {
-        const valhallaResult = await tryValhalla(profile, lat, lng, seconds);
-        if (valhallaResult) {
-          valhallaResult.provider = 'valhalla';
-          const res = NextResponse.json(valhallaResult);
-          res.headers.set('Cache-Control', 's-maxage=600, stale-while-revalidate=60');
-          return res;
+    for (const candidate of providerOrder) {
+      if (candidate === 'ors') {
+        if (!orsApiKey) continue;
+        try {
+          const orsResult = await tryORS(profile, [lng, lat], seconds, smoothingValue, orsApiKey);
+          if (orsResult) {
+            orsResult.provider = 'ors';
+            const res = NextResponse.json(orsResult);
+            res.headers.set('Cache-Control', 's-maxage=600, stale-while-revalidate=60');
+            return res;
+          }
+        } catch (err) {
+          console.warn('[ISOCHRONE] ORS failed, trying fallback:', err);
         }
-      } catch (err) {
-        console.warn('[ISOCHRONE] Valhalla failed:', err);
+      }
+
+      if (candidate === 'valhalla') {
+        try {
+          const valhallaResult = await tryValhalla(profile, lat, lng, seconds);
+          if (valhallaResult) {
+            valhallaResult.provider = 'valhalla';
+            const res = NextResponse.json(valhallaResult);
+            res.headers.set('Cache-Control', 's-maxage=600, stale-while-revalidate=60');
+            return res;
+          }
+        } catch (err) {
+          console.warn('[ISOCHRONE] Valhalla failed:', err);
+        }
       }
     }
 
@@ -186,6 +202,19 @@ async function tryValhalla(
   lng: number,
   seconds: number
 ): Promise<any> {
+  const configuredValhalla = process.env.VALHALLA_API_URL || process.env.NEXT_PUBLIC_VALHALLA_URL;
+  const url = configuredValhalla?.trim()
+    ? configuredValhalla.replace(/\/+$/, '').endsWith('/isochrone')
+      ? configuredValhalla.replace(/\/+$/, '')
+      : `${configuredValhalla.replace(/\/+$/, '')}/isochrone`
+    : ALLOW_PUBLIC_VALHALLA_FALLBACK
+    ? VALHALLA_URL
+    : '';
+
+  if (!url) {
+    throw new Error('Valhalla is not configured. Set VALHALLA_API_URL or enable ALLOW_PUBLIC_VALHALLA_FALLBACK=1');
+  }
+
   // Map profile to Valhalla costing
   const costingMap: Record<string, string> = {
     'driving-car': 'auto',
@@ -202,7 +231,7 @@ async function tryValhalla(
     polygons: true,
   };
 
-  const response = await fetch(VALHALLA_URL, {
+  const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

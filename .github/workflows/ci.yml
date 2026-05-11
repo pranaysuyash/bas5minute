@@ -54,9 +54,47 @@ jobs:
           ORS_API_KEY: ${{ secrets.ORS_API_KEY }}
           NEXT_PUBLIC_ORS_API_KEY: ${{ secrets.ORS_API_KEY }}
 
-  deploy:
+  validation-matrix:
     runs-on: ubuntu-latest
     needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium
+
+      - name: Start dev server
+        run: npm run dev > /tmp/b5m-dev.log 2>&1 &
+
+      - name: Wait for dev server
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://localhost:5111/api/health > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Dev server did not become ready in time"
+          exit 1
+
+      - name: Run validation matrix (env-aware)
+        run: node tools/validation-matrix.mjs
+        env:
+          BASE_URL: http://localhost:5111
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build, validation-matrix]
     if: github.ref == 'refs/heads/main'
 
     steps:

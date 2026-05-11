@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useMapContext } from '@/contexts/MapContext';
 import { getThemeColors } from '@/lib/themes';
@@ -37,6 +37,25 @@ export function AIFeaturesPanel() {
   const [visualResults, setVisualResults] = useState<Array<{ dataUrl?: string; text?: string }>>([]);
   const [captionProvider, setCaptionProvider] = useState<'auto' | 'gemini' | 'openai' | 'anthropic' | 'local'>('auto');
   const [captionStyle, setCaptionStyle] = useState<'sarcastic' | 'humorous' | 'poetic' | 'minimal' | 'reality-check'>('sarcastic');
+  const [health, setHealth] = useState<any>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadHealth = async () => {
+      try {
+        const resp = await fetch('/api/health', { cache: 'no-store' });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        if (!cancelled) setHealth(data);
+      } catch {
+        // keep panel usable without health status
+      }
+    };
+    loadHealth();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleStickerClick = (sticker: Sticker) => {
     const placement: StickerPlacement = {
@@ -228,11 +247,18 @@ export function AIFeaturesPanel() {
                   className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-400 focus:outline-none transition text-sm bg-white"
                 >
                   {captionProviders.map((p) => (
-                    <option key={p} value={p}>
+                    <option
+                      key={p}
+                      value={p}
+                      disabled={p !== 'auto' && p !== 'local' && !(health?.capabilities?.aiCaption?.[p] ?? true)}
+                    >
                       {p}
                     </option>
                   ))}
                 </select>
+                {captionProvider !== 'auto' && captionProvider !== 'local' && !(health?.capabilities?.aiCaption?.[captionProvider] ?? true) && (
+                  <p className="text-[11px] text-amber-600">Selected provider is not configured</p>
+                )}
               </div>
 
               <div className="space-y-1">

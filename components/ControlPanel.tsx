@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMapContext } from '@/contexts/MapContext';
 import { LocationSearch } from './LocationSearch';
 import { ThemeSelector } from './ThemeSelector';
@@ -36,8 +36,27 @@ export function ControlPanel() {
   } = useMapContext();
 
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [health, setHealth] = useState<any>(null);
   const colors = getThemeColors(theme);
   const providerConfigs = getProviderConfigs(process.env.NEXT_PUBLIC_PMTILES_URL);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadHealth = async () => {
+      try {
+        const resp = await fetch('/api/health', { cache: 'no-store' });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        if (!cancelled) setHealth(data);
+      } catch {
+        // keep UI functional even when health endpoint fails
+      }
+    };
+    loadHealth();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleGenerate = async () => {
     if (!location) {
@@ -181,14 +200,8 @@ export function ControlPanel() {
             <label className="block text-sm font-bold text-gray-700">Map Provider</label>
             <div className="grid grid-cols-2 gap-2 text-sm">
               {providerConfigs.map((provider) => {
-                const requiresToken =
-                  provider.tokenEnv === 'NEXT_PUBLIC_MAPBOX_TOKEN'
-                    ? !process.env.NEXT_PUBLIC_MAPBOX_TOKEN
-                    : provider.tokenEnv === 'NEXT_PUBLIC_MAPTILER_KEY'
-                    ? !process.env.NEXT_PUBLIC_MAPTILER_KEY
-                    : false;
-
-                const disabled = provider.requiresToken && requiresToken;
+                const capability = health?.capabilities?.maps?.[provider.id] ?? true;
+                const disabled = !capability;
                 return (
                   <label
                     key={provider.id}
@@ -209,7 +222,7 @@ export function ControlPanel() {
                     />
                     <span>{provider.label}</span>
                     <span className={`text-xs ${disabled ? 'text-amber-600' : 'text-green-500'}`}>
-                      {disabled ? 'needs env' : 'ready'}
+                      {disabled ? 'unavailable' : 'ready'}
                     </span>
                   </label>
                 );
@@ -231,9 +244,12 @@ export function ControlPanel() {
                   value="ors"
                   checked={isoProvider === 'ors'}
                   onChange={() => setIsoProvider && setIsoProvider('ors')}
+                  disabled={!health?.capabilities?.isochrone?.ors}
                 />
                 <span>OpenRouteService</span>
-                <span className="ml-2 text-xs text-gray-400">server</span>
+                <span className={`ml-2 text-xs ${health?.capabilities?.isochrone?.ors ? 'text-green-600' : 'text-amber-600'}`}>
+                  {health?.capabilities?.isochrone?.ors ? 'ready' : 'missing key'}
+                </span>
               </label>
 
               <label className="inline-flex items-center space-x-2">
@@ -243,9 +259,12 @@ export function ControlPanel() {
                   value="valhalla"
                   checked={isoProvider === 'valhalla'}
                   onChange={() => setIsoProvider && setIsoProvider('valhalla')}
+                  disabled={!health?.capabilities?.isochrone?.valhalla}
                 />
                 <span>Valhalla</span>
-                <span className="ml-2 text-xs text-gray-400">server env</span>
+                <span className={`ml-2 text-xs ${health?.capabilities?.isochrone?.valhalla ? 'text-green-600' : 'text-amber-600'}`}>
+                  {health?.capabilities?.isochrone?.valhalla ? 'ready' : 'not configured'}
+                </span>
               </label>
 
               <label className="inline-flex items-center space-x-2">
@@ -255,9 +274,12 @@ export function ControlPanel() {
                   value="backend"
                   checked={isoProvider === 'backend'}
                   onChange={() => setIsoProvider && setIsoProvider('backend')}
+                  disabled={!health?.capabilities?.isochrone?.backend}
                 />
                 <span>Backend Proxy</span>
-                <span className="ml-2 text-xs text-gray-400">fallback</span>
+                <span className={`ml-2 text-xs ${health?.capabilities?.isochrone?.backend ? 'text-green-600' : 'text-amber-600'}`}>
+                  {health?.capabilities?.isochrone?.backend ? 'ready' : 'not configured'}
+                </span>
               </label>
             </div>
           </div>

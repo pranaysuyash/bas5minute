@@ -31,6 +31,12 @@ node tools/validation-matrix.mjs
 BASE_URL=http://localhost:5111 node tools/validation-matrix.mjs
 ```
 
+4. Optional strict mode (treat all failures as blocking):
+
+```bash
+VALIDATION_STRICT=1 node tools/validation-matrix.mjs
+```
+
 ### Artifacts
 
 - `tools/validation-home.png`: full-page screenshot taken during validation.
@@ -43,4 +49,4 @@ BASE_URL=http://localhost:5111 node tools/validation-matrix.mjs
 npx playwright install chromium
 ```
 
-- Some checks are environment-dependent (for example provider credentials and quotas). The report marks these clearly in pass/fail output.
+- Environment-dependent checks are reported as `SKIP` when capabilities are not configured (for example missing provider credentials).
