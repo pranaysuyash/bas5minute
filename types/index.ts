@@ -6,7 +6,14 @@ export type TimeDuration = 5 | 10 | 20 | 30;
 
 export type ThemeName = 'bollywood' | 'monsoon' | 'sandstone' | 'neon';
 
-export type MapProvider = 'osm-liberty' | 'carto-voyager' | 'carto-positron' | 'carto-dark' | 'mapbox' | 'maptiler' | 'maplibre';
+export type MapProvider =
+  | 'osm-raster'
+  | 'carto-voyager'
+  | 'carto-dark'
+  | 'mapbox'
+  | 'maptiler'
+  | 'protomaps-pmtiles'
+  | 'maplibre';
 
 export type ExportFormat = 'social-square' | 'story-vertical' | 'poster-a4' | 'poster-a3' | 'transparent-png';
 
@@ -14,7 +21,7 @@ export type IsochroneProvider = 'ors' | 'valhalla' | 'backend';
 
 export type ExportTemplate = 'map' | 'clean' | 'bollywood' | 'monsoon' | 'neon';
 
-export type ExportFinishStyle = 'none' | 'studio-paper' | 'studio-neon' | 'studio-veins';
+export type ExportFinishStyle = 'none' | 'studio-paper' | 'studio-neon' | 'studio-veins' | 'isometric' | 'watercolor' | 'neon-glow';
 
 export type AIImageProvider = 'gemini' | 'fal' | 'replicate' | 'huggingface';
 
@@ -100,6 +107,7 @@ export interface MapState {
   exportIncludeCoordinates: boolean;
   exportIncludeTimestamp: boolean;
   aiImageProvider: AIImageProvider;
+  stickerPlacements?: StickerPlacement[];
 }
 
 export interface ExportOptions {
@@ -127,4 +135,12 @@ export interface SupportOption {
   url?: string;
   qrCode?: string;
   displayName: string;
+}
+
+export interface StickerPlacement {
+  stickerId: string;
+  x: number;
+  y: number;
+  size: number;
+  rotation: number;
 }

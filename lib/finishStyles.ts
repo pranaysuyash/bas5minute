@@ -93,6 +93,112 @@ function addSoftGlow(ctx: CanvasRenderingContext2D, w: number, h: number, streng
   ctx.restore();
 }
 
+function applyIsometric(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+
+    const brightness = (r + g + b) / 3;
+
+    data[i] = Math.min(255, r * 1.1 + brightness * 0.1);
+    data[i + 1] = Math.min(255, g * 1.05 + brightness * 0.05);
+    data[i + 2] = Math.min(255, b * 1.15 + brightness * 0.15);
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.globalAlpha = 0.15;
+  
+  const gradient = ctx.createLinearGradient(0, 0, w, h);
+  gradient.addColorStop(0, '#ff6b6b');
+  gradient.addColorStop(0.5, '#4ecdc4');
+  gradient.addColorStop(1, '#45b7d1');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, w, h);
+  ctx.restore();
+
+  addGrain(ctx, w, h, 0.2);
+}
+
+function applyWatercolor(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+
+    const paper = 250 + Math.random() * 10;
+    const blend = 0.7;
+
+    data[i] = Math.round(r * blend + paper * (1 - blend));
+    data[i + 1] = Math.round(g * blend + paper * (1 - blend));
+    data[i + 2] = Math.round(b * blend + paper * (1 - blend));
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.globalAlpha = 0.08;
+  
+  const texture = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) / 2);
+  texture.addColorStop(0, '#f5f5dc');
+  texture.addColorStop(1, '#d4c5a9');
+  ctx.fillStyle = texture;
+  ctx.fillRect(0, 0, w, h);
+  ctx.restore();
+
+  addGrain(ctx, w, h, 0.15);
+  addVignette(ctx, w, h, 0.1);
+}
+
+function applyNeonGlow(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+
+    const max = Math.max(r, g, b);
+    const boost = 1.3;
+
+    data[i] = Math.min(255, r * boost + (r === max ? 30 : 0));
+    data[i + 1] = Math.min(255, g * boost + (g === max ? 30 : 0));
+    data[i + 2] = Math.min(255, b * boost + (b === max ? 30 : 0));
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = 0.25;
+  ctx.filter = 'blur(8px) saturate(1.5)';
+  ctx.drawImage(ctx.canvas, 0, 0, w, h);
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.globalAlpha = 0.1;
+  
+  const gradient = ctx.createLinearGradient(0, 0, 0, h);
+  gradient.addColorStop(0, '#00ffff');
+  gradient.addColorStop(0.5, '#ff00ff');
+  gradient.addColorStop(1, '#ffff00');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, w, h);
+  ctx.restore();
+}
+
 export async function applyFinishStyleToDataURL(
   dataUrl: string,
   style: ExportFinishStyle
@@ -128,6 +234,21 @@ export async function applyFinishStyleToDataURL(
   if (style === 'studio-veins') {
     applyVeins(ctx, canvas.width, canvas.height);
     addVignette(ctx, canvas.width, canvas.height, 0.12);
+    return canvas.toDataURL('image/png');
+  }
+
+  if (style === 'isometric') {
+    applyIsometric(ctx, canvas.width, canvas.height);
+    return canvas.toDataURL('image/png');
+  }
+
+  if (style === 'watercolor') {
+    applyWatercolor(ctx, canvas.width, canvas.height);
+    return canvas.toDataURL('image/png');
+  }
+
+  if (style === 'neon-glow') {
+    applyNeonGlow(ctx, canvas.width, canvas.height);
     return canvas.toDataURL('image/png');
   }
 

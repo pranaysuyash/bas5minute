@@ -21,13 +21,12 @@ export function StatsPanel() {
   const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
   const [mapCount, setMapCount] = useState(0);
   const [showJoke, setShowJoke] = useState(true);
+  const [trafficJoke, setTrafficJoke] = useState<string>('');
   
   const areaSqKm = isochroneData ? calculateIsochroneAreaSqKm(isochroneData) : 0;
   const realityScore = isochroneData && location
     ? calculateRealityScore(duration, areaSqKm, mode, location.city)
     : null;
-  
-  const trafficJoke = getCityTrafficJoke(location?.city);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -38,54 +37,64 @@ export function StatsPanel() {
     if (count) {
       setMapCount(parseInt(count, 10));
     }
-  }, []);
+    setTrafficJoke(getCityTrafficJoke(location?.city));
+  }, [location?.city]);
 
   useEffect(() => {
     if (isochroneData) {
-      const newAchievements = [...unlockedAchievements];
-      let changed = false;
+      // Use functional updates to avoid dependency issues
+      setMapCount(prev => {
+        const newCount = prev + 1;
+        localStorage.setItem(STORAGE_KEY_COUNT, newCount.toString());
+        return newCount;
+      });
 
-      const addAchievement = (id: string) => {
-        if (!newAchievements.includes(id)) {
-          newAchievements.push(id);
-          changed = true;
+      setUnlockedAchievements(prev => {
+        const newAchievements = [...prev];
+        let changed = false;
+
+        const addAchievement = (id: string) => {
+          if (!newAchievements.includes(id)) {
+            newAchievements.push(id);
+            changed = true;
+          }
+        };
+
+        addAchievement('first_map');
+
+        // We can't use mapCount here since we're using functional update
+        // So we'll rely on localStorage for count-based achievements
+        const storedCount = parseInt(localStorage.getItem(STORAGE_KEY_COUNT) || '0', 10);
+        if (storedCount >= 10) addAchievement('optimist');
+        if (storedCount >= 50) addAchievement('reality_check');
+
+        if (mode === 'walking') addAchievement('walker');
+        if (mode === 'cycling') addAchievement('cyclist');
+
+        if (location?.city?.toLowerCase() === 'bangalore' || location?.city?.toLowerCase() === 'bengaluru') {
+          addAchievement('bangalore_survivor');
         }
-      };
+        if (location?.city?.toLowerCase() === 'mumbai') {
+          addAchievement('mumbai_mermaid');
+        }
+        if (location?.city?.toLowerCase() === 'delhi' || location?.city?.toLowerCase() === 'new delhi') {
+          addAchievement('delhi_daredevil');
+        }
 
-      addAchievement('first_map');
-      
-      const newCount = mapCount + 1;
-      setMapCount(newCount);
-      localStorage.setItem(STORAGE_KEY_COUNT, newCount.toString());
-      
-      if (newCount >= 10) addAchievement('optimist');
-      if (newCount >= 50) addAchievement('reality_check');
+        if (desiMode) addAchievement('desi_mode');
 
-      if (mode === 'walking') addAchievement('walker');
-      if (mode === 'cycling') addAchievement('cyclist');
+        const hour = new Date().getHours();
+        if (hour >= 0 && hour < 6) addAchievement('night_owl');
+        if (hour >= 4 && hour < 6) addAchievement('early_bird');
 
-      if (location?.city?.toLowerCase() === 'bangalore' || location?.city?.toLowerCase() === 'bengaluru') {
-        addAchievement('bangalore_survivor');
-      }
-      if (location?.city?.toLowerCase() === 'mumbai') {
-        addAchievement('mumbai_mermaid');
-      }
-      if (location?.city?.toLowerCase() === 'delhi' || location?.city?.toLowerCase() === 'new delhi') {
-        addAchievement('delhi_daredevil');
-      }
-
-      if (desiMode) addAchievement('desi_mode');
-
-      const hour = new Date().getHours();
-      if (hour >= 0 && hour < 6) addAchievement('night_owl');
-      if (hour >= 4 && hour < 6) addAchievement('early_bird');
-
-      if (changed) {
-        setUnlockedAchievements(newAchievements);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(newAchievements));
-      }
+        if (changed) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(newAchievements));
+          return newAchievements;
+        }
+        return prev;
+      });
     }
-  }, [isochroneData, mode, location?.city, desiMode, mapCount, unlockedAchievements]);
+  }, [isochroneData, mode, location?.city, desiMode]);
 
   if (!isochroneData) {
     return (

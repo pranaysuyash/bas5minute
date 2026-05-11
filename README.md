@@ -137,7 +137,7 @@ We support both paid (Mapbox) and **100% free alternatives (MapLibre)**:
    # Just use OSM tiles directly, no env var required
 
    # Required - Isochrones
-   NEXT_PUBLIC_ORS_API_KEY=your_ors_key
+   ORS_API_KEY=your_ors_key
 
    # Optional - AI Features
    OPENAI_API_KEY=your_openai_key
@@ -171,11 +171,12 @@ We support both paid (Mapbox) and **100% free alternatives (MapLibre)**:
    Navigate to [http://localhost:5111](http://localhost:5111)
 
 ## 🧭 Map providers & fallbacks
-- You can choose which map provider to use in the **Advanced Options** of the Control Panel: **Mapbox**, **MapTiler**, or **MapLibre (OSM)**. This lets you test different providers during development.
+- You can choose map providers in **Advanced Options**: **OSM**, **Carto Voyager**, **Carto Dark**, **MapTiler**, **Mapbox**, and optionally **Protomaps PMTiles**.
 - Environment variables:
   - `NEXT_PUBLIC_MAPBOX_TOKEN` for Mapbox
   - `NEXT_PUBLIC_MAPTILER_KEY` for MapTiler
-- If a provider fails to load (missing/invalid token, CORS, etc.), the app will automatically fallback to the MapLibre demo tiles (`https://demotiles.maplibre.org/style.json`) so you can continue development without blocking on API keys.
+  - `NEXT_PUBLIC_PMTILES_URL` for PMTiles/Protomaps vector archives
+- If a selected provider is unavailable (missing token/env), the app falls back to `osm-raster` automatically and keeps the UI selection in sync.
 - To test providers locally, set your provider in the Control Panel -> Advanced Options, and watch the map switch immediately.
 
 ## 🎛️ AI panel responsiveness & controls

@@ -5,10 +5,11 @@ import Image from 'next/image';
 import { useMapContext } from '@/contexts/MapContext';
 import { getThemeColors } from '@/lib/themes';
 import { getAllFilters } from '@/lib/filters';
-import { getStickerCategories, getStickersByCategory } from '@/lib/stickers';
+import { getStickerCategories, getStickersByCategory, stickerLibrary, Sticker } from '@/lib/stickers';
 import { analytics } from '@/lib/analytics';
 import type { AIImageProvider, FilterType } from '@/types';
 import { downloadBlob } from '@/lib/utils';
+import { StickerPlacement } from '@/types';
 
 export function AIFeaturesPanel() {
   const {
@@ -21,6 +22,9 @@ export function AIFeaturesPanel() {
     setExportFilter,
     aiImageProvider,
     setAiImageProvider,
+    addSticker,
+    stickerPlacements,
+    clearStickers,
   } = useMapContext();
   const colors = getThemeColors(theme);
 
@@ -33,6 +37,18 @@ export function AIFeaturesPanel() {
   const [visualResults, setVisualResults] = useState<Array<{ dataUrl?: string; text?: string }>>([]);
   const [captionProvider, setCaptionProvider] = useState<'auto' | 'gemini' | 'openai' | 'anthropic' | 'local'>('auto');
   const [captionStyle, setCaptionStyle] = useState<'sarcastic' | 'humorous' | 'poetic' | 'minimal' | 'reality-check'>('sarcastic');
+
+  const handleStickerClick = (sticker: Sticker) => {
+    const placement: StickerPlacement = {
+      stickerId: sticker.id,
+      x: 20 + Math.random() * 60,
+      y: 20 + Math.random() * 60,
+      size: 48,
+      rotation: Math.random() * 30 - 15,
+    };
+    addSticker(placement);
+    analytics.stickerAdded(sticker.category);
+  };
 
   // UI controls: collapse and width (responsive)
   const [collapsed, setCollapsed] = useState(false);
@@ -426,6 +442,21 @@ export function AIFeaturesPanel() {
                   Add fun emojis and icons to your map
                 </p>
 
+                {stickerPlacements && stickerPlacements.length > 0 && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-green-600 font-medium">
+                      ✓ {stickerPlacements.length} sticker{stickerPlacements.length > 1 ? 's' : ''} placed
+                    </span>
+                    <button
+                      type="button"
+                      onClick={clearStickers}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                )}
+
                 {getStickerCategories().map((category) => {
                   const stickers = getStickersByCategory(category);
                   return (
@@ -437,6 +468,8 @@ export function AIFeaturesPanel() {
                         {stickers.map((sticker) => (
                           <button
                             key={sticker.id}
+                            type="button"
+                            onClick={() => handleStickerClick(sticker)}
                             className="w-12 h-12 flex items-center justify-center text-2xl bg-white hover:bg-gray-100 border-2 border-gray-200 hover:border-gray-300 rounded-lg transition"
                             title={sticker.displayName}
                           >

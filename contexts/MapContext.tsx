@@ -13,6 +13,7 @@ import {
   FilterType,
   IsochroneProvider,
   AIImageProvider,
+  StickerPlacement,
 } from '@/types';
 import { fetchIsochrone } from '@/lib/api';
 import { analytics } from '@/lib/analytics';
@@ -34,6 +35,9 @@ interface MapContextType extends MapState {
   setExportIncludeCoordinates: (enabled: boolean) => void;
   setExportIncludeTimestamp: (enabled: boolean) => void;
   setAiImageProvider: (provider: AIImageProvider) => void;
+  addSticker: (placement: StickerPlacement) => void;
+  removeSticker: (index: number) => void;
+  clearStickers: () => void;
   generateIsochrone: () => Promise<void>;
   clearError: () => void;
 }
@@ -41,7 +45,7 @@ interface MapContextType extends MapState {
 const MapContext = createContext<MapContextType | undefined>(undefined);
 
 export function MapProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<MapState & { mapProvider?: string; isoProvider?: string; geocodingProvider?: string }>({
+  const [state, setState] = useState<MapState & { mapProvider?: string; isoProvider?: string; geocodingProvider?: string; stickerPlacements: StickerPlacement[] }>({
     location: null,
     mode: 'driving',
     duration: 5,
@@ -51,8 +55,8 @@ export function MapProvider({ children }: { children: ReactNode }) {
     isLoading: false,
     error: null,
     isochroneData: null,
-    // Default providers - OSM Liberty is FREE, no API key needed!
-    mapProvider: 'osm-liberty',
+    // Default provider prioritizes zero-cost setup.
+    mapProvider: 'osm-raster',
     isoProvider: 'ors',
     geocodingProvider: 'nominatim',
     isochroneSmoothing: 0,
@@ -62,6 +66,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
     exportIncludeCoordinates: false,
     exportIncludeTimestamp: false,
     aiImageProvider: 'gemini',
+    stickerPlacements: [],
   });
 
   const setLocation = useCallback((location: Location | null) => {
@@ -133,7 +138,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
       // Track error
       analytics.errorOccurred('map_generation', error instanceof Error ? error.message : 'Unknown error');
     }
-  }, [state.location, state.mode, state.duration, state.isochroneSmoothing]);
+  }, [state.location, state.mode, state.duration, state.isochroneSmoothing, state.isoProvider, state.theme]);
 
   const setIsochroneSmoothing = useCallback((smoothing: number) => {
     const next = Math.max(0, Math.min(20, Math.round(smoothing)));
@@ -176,6 +181,21 @@ export function MapProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, aiImageProvider: provider }));
   }, []);
 
+  const addSticker = useCallback((placement: StickerPlacement) => {
+    setState((prev) => ({ ...prev, stickerPlacements: [...prev.stickerPlacements, placement] }));
+  }, []);
+
+  const removeSticker = useCallback((index: number) => {
+    setState((prev) => ({
+      ...prev,
+      stickerPlacements: prev.stickerPlacements.filter((_, i) => i !== index),
+    }));
+  }, []);
+
+  const clearStickers = useCallback(() => {
+    setState((prev) => ({ ...prev, stickerPlacements: [] }));
+  }, []);
+
   return (
     <MapContext.Provider
       value={{
@@ -196,6 +216,9 @@ export function MapProvider({ children }: { children: ReactNode }) {
         setExportIncludeCoordinates,
         setExportIncludeTimestamp,
         setAiImageProvider,
+        addSticker,
+        removeSticker,
+        clearStickers,
         generateIsochrone,
         clearError,
       }}

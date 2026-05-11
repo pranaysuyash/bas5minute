@@ -3,6 +3,19 @@
  * Adds "Bas 5 Minute" watermark to images for non-licensed users
  */
 
+export type LicenseType = 'personal' | 'commercial' | 'enterprise';
+
+export interface License {
+  key: string;
+  type: LicenseType;
+  email: string;
+  expiresAt: string | null;
+  features: string[];
+  createdAt: string;
+}
+
+const LICENSE_STORAGE_KEY = 'bas5minute_license';
+
 export interface WatermarkOptions {
   text?: string;
   position?: 'bottom-right' | 'bottom-center' | 'bottom-left' | 'center';
@@ -134,12 +147,78 @@ export async function addWatermarkToDataURL(
 }
 
 /**
- * Check if user has valid license (placeholder - integrate with your auth system)
+ * Check if user has valid license
  */
 export function hasValidLicense(): boolean {
-  // TODO: Implement actual license check against database
-  // For now, check if watermark is disabled in env
-  return process.env.NEXT_PUBLIC_ENABLE_WATERMARK !== 'true';
+  if (typeof window === 'undefined') return false;
+  
+  const license = getStoredLicense();
+  if (!license) return false;
+  
+  if (license.expiresAt) {
+    const expiry = new Date(license.expiresAt);
+    if (expiry < new Date()) {
+      clearLicense();
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+/**
+ * Get stored license from localStorage
+ */
+export function getStoredLicense(): License | null {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const stored = localStorage.getItem(LICENSE_STORAGE_KEY);
+    if (!stored) return null;
+    return JSON.parse(stored) as License;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Store license in localStorage
+ */
+export function storeLicense(license: License): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(license));
+}
+
+/**
+ * Clear stored license
+ */
+export function clearLicense(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(LICENSE_STORAGE_KEY);
+}
+
+/**
+ * Get license type
+ */
+export function getLicenseType(): LicenseType | null {
+  const license = getStoredLicense();
+  return license?.type || null;
+}
+
+/**
+ * Check if license has specific feature
+ */
+export function hasFeature(feature: string): boolean {
+  const license = getStoredLicense();
+  return license?.features.includes(feature) || false;
+}
+
+/**
+ * Validate license key format (basic check)
+ */
+export function isValidLicenseKeyFormat(key: string): boolean {
+  const pattern = /^B5M-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+  return pattern.test(key);
 }
 
 /**

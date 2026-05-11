@@ -13,6 +13,7 @@ import { SocialShare } from './SocialShare';
 import { EmailCaptureModal } from './EmailCaptureModal';
 import { applyFilterToDataURL } from '@/lib/filters';
 import { applyFinishStyleToDataURL } from '@/lib/finishStyles';
+import { addStickersToCanvas, stickerLibrary } from '@/lib/stickers';
 
 export function ExportPanel() {
   const {
@@ -31,6 +32,7 @@ export function ExportPanel() {
     setExportIncludeCoordinates,
     exportIncludeTimestamp,
     setExportIncludeTimestamp,
+    stickerPlacements,
   } = useMapContext();
 
   const [isExporting, setIsExporting] = useState(false);
@@ -89,6 +91,23 @@ export function ExportPanel() {
       if (format !== 'transparent-png') {
         dataUrl = await applyFilterToDataURL(dataUrl, exportFilter);
         dataUrl = await applyFinishStyleToDataURL(dataUrl, exportFinishStyle);
+      }
+
+      // Apply stickers if any
+      if (stickerPlacements && stickerPlacements.length > 0) {
+        const img = new Image();
+        img.src = dataUrl;
+        await new Promise((resolve) => { img.onload = resolve; });
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          addStickersToCanvas(canvas, stickerPlacements);
+          dataUrl = canvas.toDataURL('image/png');
+        }
       }
 
       // Add watermark if user doesn't have a license
@@ -190,7 +209,10 @@ export function ExportPanel() {
     { id: 'none', label: 'None', description: 'No post-processing' },
     { id: 'studio-paper', label: 'Studio Paper', description: 'Subtle grain + vignette' },
     { id: 'studio-neon', label: 'Studio Neon', description: 'Soft glow + vignette' },
-    { id: 'studio-veins', label: 'Road Veins', description: 'Edge-detected linework for prints' },
+    { id: 'studio-veins', label: 'Road Veins', description: 'Edge-detected linework' },
+    { id: 'isometric', label: 'Isometric', description: 'Vibrant 3D-style colors' },
+    { id: 'watercolor', label: 'Watercolor', description: 'Soft artistic paper look' },
+    { id: 'neon-glow', label: 'Neon Glow', description: 'Cyberpunk aesthetic' },
   ];
 
   return (

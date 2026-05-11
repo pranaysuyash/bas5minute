@@ -1,0 +1,21 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://bas5minute.com/sitemap.xml
+
+# Disallow admin/api routes
+Disallow: /api/
+Disallow: /_next/
+Disallow: /private/
+
+# Allow public pages
+Allow: /
+Allow: /about
+Allow: /pricing
+Allow: /gallery
+Allow: /order
+Allow: /contact
+Allow: /privacy
+Allow: /terms

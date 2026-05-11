@@ -19,7 +19,7 @@ export function MapViewInner(props: {
   NavigationControl: AnyComp;
   isMapbox: boolean;
   mapToken?: string;
-  mapStyleUrl?: string;
+  mapStyleUrl?: string | Record<string, unknown>;
   onFallbackToMapLibre: () => void;
 }) {
   const {
@@ -36,7 +36,6 @@ export function MapViewInner(props: {
   } = useMapContext();
 
   const mapRef = useRef<any>(null);
-  const [mapError, setMapError] = useState<string | null>(null);
   const [viewState, setViewState] = useState({
     latitude: location?.lat || DEFAULT_CENTER.lat,
     longitude: location?.lng || DEFAULT_CENTER.lng,
@@ -142,9 +141,9 @@ export function MapViewInner(props: {
   };
 
   const handleMapError = (err: any) => {
-    console.warn('Map error, falling back to MapLibre demo tiles:', err);
-    setMapError(err?.message || 'Failed to load map style');
+    console.warn('Map error, falling back:', err?.message || err);
     props.onFallbackToMapLibre();
+    // Don't set error - we're falling back silently
   };
 
   const showPosterOverlay = exportTemplate !== 'map';
@@ -155,13 +154,6 @@ export function MapViewInner(props: {
 
   return (
     <div className="relative w-full h-full">
-      {mapError && (
-        <div className="absolute top-4 left-4 z-20 bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded shadow">
-          <p className="text-sm font-medium text-yellow-700">Map provider failed, using fallback tiles</p>
-          <p className="text-xs text-yellow-700">{mapError}</p>
-        </div>
-      )}
-
       <props.Map
         ref={mapRef}
         {...viewState}
@@ -301,4 +293,3 @@ export function MapViewInner(props: {
     </div>
   );
 }
-

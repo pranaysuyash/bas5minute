@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useMapContext } from '@/contexts/MapContext';
 import { getThemeColors } from '@/lib/themes';
-import { calculateIsochroneAreaSqKm, getCityTrafficJoke, compareLocations } from '@/lib/utils';
+import { calculateIsochroneAreaSqKm, compareLocations } from '@/lib/utils';
 
 interface CityPreset {
   name: string;

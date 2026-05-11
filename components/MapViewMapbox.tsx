@@ -7,7 +7,7 @@ import { MapViewInner } from './MapViewInner';
 
 export function MapViewMapbox(props: {
   mapToken?: string;
-  mapStyleUrl?: string;
+  mapStyleUrl?: string | Record<string, unknown>;
   onFallbackToMapLibre: () => void;
 }) {
   return (
@@ -24,4 +24,3 @@ export function MapViewMapbox(props: {
     />
   );
 }
-

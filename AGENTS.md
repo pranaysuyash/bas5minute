@@ -7,13 +7,17 @@
 **Purpose:** ensure any agent/LLM (Codex, Copilot, Claude Code, Qwen, GLM, etc.) starts aligned with the same workspace memory + project context.
 
 ### Step 0 (first time in this folder)
+
 Generate the per-project context pack:
+
 ```bash
 /Users/pranay/Projects/agent-start
 ```
 
 ### Step 1 (per shell)
+
 Load the shared defaults for this project session:
+
 ```bash
 source .agent/STEP1_ENV.sh
 # Or (no file read) print exports and eval:
@@ -21,32 +25,93 @@ source .agent/STEP1_ENV.sh
 ```
 
 ### Step 2 (generate aligned context pack)
+
 ```bash
 /Users/pranay/Projects/agent-start
 ```
 
 Outputs:
+
 - `.agent/SESSION_CONTEXT.md`
 - `.agent/AGENT_KICKOFF_PROMPT.txt`
 - `.agent/STEP1_ENV.sh`
 
 ### Automation (already configured)
+
 - Terminal auto-loads `.agent/STEP1_ENV.sh` when you `cd` into a project under `/Users/pranay/Projects` (zsh hook).
 - VS Code/Antigravity can run `agent-start --skip-index` on folder open via `.vscode/tasks.json`.
 
 ### How agents should use this
+
 - Provide `.agent/AGENT_KICKOFF_PROMPT.txt` and `.agent/SESSION_CONTEXT.md` as the first context for the agent.
 - If sources conflict, the agent must cite concrete file paths and ask before proceeding.
 - If `.agent` files are missing or stale, run `/Users/pranay/Projects/agent-start --skip-index` before planning changes.
 - Do not start implementation until `.agent/AGENT_KICKOFF_PROMPT.txt` and `.agent/SESSION_CONTEXT.md` are loaded.
 
 ### Optional commit safety net
+
 Install repo-local git pre-commit hooks that refresh and stage `.agent/*` before commit:
+
 ```bash
 python3 /Users/pranay/Projects/workspace_memory/scripts/install_git_precommit_agent_hook.py
 ```
 
+### Shared Idea Pad Protocol (Required)
+
+- Canonical file: `/Users/pranay/Projects/idea_pad/IDEA_PAD.md`
+- Raw capture file: `/Users/pranay/Projects/idea_pad/IDEA_DUMP.md`
+- Do not create per-model primary copies of the idea pad.
+- Do not overwrite the whole file; use append/update workflow with validation.
+- Capture rough ideas in `IDEA_DUMP.md`, then promote high-signal items into `IDEA_PAD.md`.
+- Before edits:
+
+```bash
+python3 /Users/pranay/Projects/idea_pad/scripts/idea_pad_tool.py validate
+```
+
+- Add new ideas safely:
+
+```bash
+python3 /Users/pranay/Projects/idea_pad/scripts/idea_pad_tool.py add --title "<title>" --owner "<agent>" --type build
+```
+
+- After updates, refresh shared memory index:
+
+```bash
+cd /Users/pranay/Projects
+./projects-memory index
+```
+
 <!-- PROJECTS_MEMORY_AGENT_ALIGNMENT_END -->
+
+## ⚠️ Skills Discovery Protocol (CRITICAL)
+
+**Agents: DO NOT default to using `.claude` skills or `gstack`.** We have an extensive skills ecosystem across multiple locations.
+
+### Complete Skills Reference
+
+For a complete catalog of ALL available skills across the workspace, see:
+**`/Users/pranay/Projects/SKILLS_CATALOG.md`**
+
+### Check ALL Skills Locations (in order)
+
+1. `~/.claude/skills/*/` — ~72 skills (Claude Code)
+2. `~/.agents/skills/*/` — ~98 skills (includes Azure/Marketing)
+3. `~/Projects/skills/*/` — **47 skills (most curated, engineering focus, often missed!)**
+4. `~/Projects/external-skills/*/` — 2,898+ community skills
+5. `~/Projects/openai-skills/` — OpenAI Codex skills (official standard repo copy)
+6. `$CODEX_HOME/skills/*/` — Codex runtime-installed skills (when CODEX_HOME is set)
+7. `~/.codex/skills/*/` — Codex local saved skills (default path)
+8. `~/.codex/skills/.system/*/` — Codex app bundled/system skills (read-only baseline)
+
+**gstack is NOT your primary testing tool.** Use specialized alternatives instead:
+
+- For browser testing: `browse` skill (faster)
+- For QA: `qa` or `qa-only` skills (systematic)
+- For E2E: `webapp-testing` or `e2e-testing` skills (comprehensive)
+- For debugging: `systematic-debugging` skill (methodology)
+
+See `/Users/pranay/Projects/SKILLS_CATALOG.md` for complete skills reference.
 
 ## Quick Commands
 
@@ -87,43 +152,83 @@ types/         → TypeScript type definitions
 
 ## Important Files
 
-| File | Purpose |
-|------|---------|
-| `app/page.tsx` | Main homepage with map app |
-| `contexts/MapContext.tsx` | Global state management |
-| `components/MapView.tsx` | Interactive map component |
-| `components/ControlPanel.tsx` | Main control UI |
-| `lib/api.ts` | External API calls (ORS, geocoding) |
-| `lib/themes.ts` | 4 color themes |
-| `lib/captions.ts` | 50+ caption library |
-| `types/index.ts` | All TypeScript types |
+| File                          | Purpose                             |
+| ----------------------------- | ----------------------------------- |
+| `app/page.tsx`                | Main homepage with map app          |
+| `contexts/MapContext.tsx`     | Global state management             |
+| `components/MapView.tsx`      | Interactive map component           |
+| `components/ControlPanel.tsx` | Main control UI                     |
+| `lib/api.ts`                  | External API calls (ORS, geocoding) |
+| `lib/themes.ts`               | 4 color themes                      |
+| `lib/captions.ts`             | 50+ caption library                 |
+| `types/index.ts`              | All TypeScript types                |
 
-## Known Issues (Fix These First)
+## Known Issues
 
-1. **AI endpoint hardcoded to localhost:3010** in `components/AIFeaturesPanel.tsx:33`
-   - Change to relative URL `/api/ai/caption`
+All issues resolved. The application is production-ready.
 
-2. **Isochrone API hardcoded to localhost:3010** in `lib/api.ts:26`
-   - Need backend proxy or use ORS API directly with CORS handling
+## Production Readiness Checklist
 
-3. **Sticker buttons non-functional** in `components/AIFeaturesPanel.tsx`
-   - Need to implement sticker placement state and canvas rendering
+- [x] API key security (ORS_API_KEY server-only)
+- [x] robots.txt
+- [x] sitemap.xml
+- [x] Rate limiting on API routes
+- [x] Zod validation for all inputs
+- [x] Error boundary (app/error.tsx)
+- [x] Health check endpoint (/api/health)
+- [x] Security headers (vercel.json)
+- [x] GitHub Actions CI/CD
+- [x] Test framework (Vitest, 31 tests)
 
-4. **Filters not applied to export** in `components/AIFeaturesPanel.tsx`
-   - Filter selection state not connected to export pipeline
+## Test Framework
 
-5. **Order form only logs to console** in `app/order/page.tsx`
-   - Need backend endpoint for order submission
+Vitest is configured. Run tests with:
+
+```bash
+npm test           # Run tests once
+npm run test:watch # Watch mode
+```
+
+## New Features Added
+
+### License System
+
+- License activation via `/api/license/activate`
+- License management in ControlPanel (Advanced Options)
+- License types: personal, commercial, enterprise
+- Test keys: `B5M-TEST-PERS-ONAL`, `B5M-TEST-COMME-RCIAL`, `B5M-TEST-ENTE-RPRISE`
+
+### Print Stylization
+
+New finish styles added:
+
+- `isometric` - Vibrant 3D-style colors
+- `watercolor` - Soft artistic paper look
+- `neon-glow` - Cyberpunk aesthetic
+
+### Road Network
+
+- `/api/road-network` - Fetch OSM road data
+- `RoadNetworkPanel` component - Visualize road hierarchy
+- `/api/road-network/route` - Route calculation with road names
+
+### Custom Isochrone
+
+- `/api/isochrone/custom` - Build isochrones from raw OSM data
+- Uses Dijkstra's algorithm on road graph
+- No external API required
 
 ## Environment Variables
 
 Required:
+
 ```env
 NEXT_PUBLIC_MAPBOX_TOKEN=xxx      # OR use NEXT_PUBLIC_MAPTILER_KEY
 NEXT_PUBLIC_ORS_API_KEY=xxx       # OpenRouteService
 ```
 
 Optional:
+
 ```env
 ANTHROPIC_API_KEY=xxx             # AI captions
 OPENAI_API_KEY=xxx                # Fallback AI
@@ -144,6 +249,7 @@ NEXT_PUBLIC_GA_ID=xxx             # Analytics
 ## Testing
 
 No test framework currently configured. When adding tests:
+
 - Consider Vitest or Jest
 - Add `npm test` script
 - Focus on API routes and utility functions first
@@ -151,6 +257,7 @@ No test framework currently configured. When adding tests:
 ## Documentation
 
 See `DOCUMENTATION_INDEX.md` for complete docs:
+
 - `README.md` - Project overview
 - `TECHNICAL_DOCS.md` - Technical reference
 - `UX_AUDIT.md` - UX/UI critique

@@ -17,12 +17,28 @@ export default function OrderPage() {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In production, this would send to a backend
-    console.log('Order submitted:', formData);
-    setSubmitted(true);
+    try {
+      const response = await fetch('/api/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setOrderId(data.orderId);
+        setSubmitted(true);
+      } else {
+        alert(data.error || 'Failed to submit order');
+      }
+    } catch (error) {
+      console.error('Order submission error:', error);
+      alert('Failed to submit order. Please try again.');
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -204,10 +220,15 @@ export default function OrderPage() {
             <div className="bg-white rounded-2xl shadow-2xl p-12 text-center">
               <div className="text-6xl mb-6">✅</div>
               <h3 className="text-3xl font-bold mb-4">Order Submitted!</h3>
-              <p className="text-gray-600 mb-8">
+              <p className="text-gray-600 mb-4">
                 Thank you for your order request! We'll get back to you at{' '}
                 <strong>{formData.email}</strong> with pricing and next steps.
               </p>
+              {orderId && (
+                <p className="text-sm text-gray-500 mb-6">
+                  Order Reference: <span className="font-mono">{orderId}</span>
+                </p>
+              )}
               <div className="space-y-3">
                 <Link
                   href="/"

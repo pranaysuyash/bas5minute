@@ -9,6 +9,8 @@ import { DurationSelector } from './DurationSelector';
 import { CaptionEditor } from './CaptionEditor';
 import { getModeDisplayName, getModeIcon } from '@/lib/utils';
 import { getThemeColors } from '@/lib/themes';
+import { LicenseManager } from './LicenseManager';
+import { getProviderConfigs } from '@/lib/mapProviders';
 
 export function ControlPanel() {
   const {
@@ -35,6 +37,7 @@ export function ControlPanel() {
 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const colors = getThemeColors(theme);
+  const providerConfigs = getProviderConfigs(process.env.NEXT_PUBLIC_PMTILES_URL);
 
   const handleGenerate = async () => {
     if (!location) {
@@ -177,55 +180,44 @@ export function ControlPanel() {
           <div className="space-y-2 pt-2">
             <label className="block text-sm font-bold text-gray-700">Map Provider</label>
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <label className="inline-flex items-center space-x-2 p-2 rounded border hover:bg-gray-50 cursor-pointer">
-                <input
-                  type="radio"
-                  name="mapProvider"
-                  value="osm-liberty"
-                  checked={mapProvider === 'osm-liberty' || mapProvider === 'maplibre'}
-                  onChange={() => setMapProvider && setMapProvider('osm-liberty')}
-                />
-                <span>OSM Liberty</span>
-                <span className="text-xs text-green-500">FREE</span>
-              </label>
+              {providerConfigs.map((provider) => {
+                const requiresToken =
+                  provider.tokenEnv === 'NEXT_PUBLIC_MAPBOX_TOKEN'
+                    ? !process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+                    : provider.tokenEnv === 'NEXT_PUBLIC_MAPTILER_KEY'
+                    ? !process.env.NEXT_PUBLIC_MAPTILER_KEY
+                    : false;
 
-              <label className="inline-flex items-center space-x-2 p-2 rounded border hover:bg-gray-50 cursor-pointer">
-                <input
-                  type="radio"
-                  name="mapProvider"
-                  value="carto-voyager"
-                  checked={mapProvider === 'carto-voyager'}
-                  onChange={() => setMapProvider && setMapProvider('carto-voyager')}
-                />
-                <span>CartoDB Voyager</span>
-                <span className="text-xs text-green-500">FREE</span>
-              </label>
-
-              <label className="inline-flex items-center space-x-2 p-2 rounded border hover:bg-gray-50 cursor-pointer">
-                <input
-                  type="radio"
-                  name="mapProvider"
-                  value="carto-dark"
-                  checked={mapProvider === 'carto-dark'}
-                  onChange={() => setMapProvider && setMapProvider('carto-dark')}
-                />
-                <span>CartoDB Dark</span>
-                <span className="text-xs text-green-500">FREE</span>
-              </label>
-
-              <label className="inline-flex items-center space-x-2 p-2 rounded border hover:bg-gray-50 cursor-pointer">
-                <input
-                  type="radio"
-                  name="mapProvider"
-                  value="mapbox"
-                  checked={mapProvider === 'mapbox'}
-                  onChange={() => setMapProvider && setMapProvider('mapbox')}
-                />
-                <span>Mapbox</span>
-                <span className="text-xs text-gray-400">{process.env.NEXT_PUBLIC_MAPBOX_TOKEN ? '✓' : '✗'}</span>
-              </label>
+                const disabled = provider.requiresToken && requiresToken;
+                return (
+                  <label
+                    key={provider.id}
+                    className={`inline-flex items-center space-x-2 p-2 rounded border transition ${
+                      disabled ? 'opacity-60 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-50 cursor-pointer'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="mapProvider"
+                      value={provider.id}
+                      checked={
+                        mapProvider === provider.id ||
+                        (provider.id === 'osm-raster' && mapProvider === 'maplibre')
+                      }
+                      onChange={() => setMapProvider && setMapProvider(provider.id)}
+                      disabled={disabled}
+                    />
+                    <span>{provider.label}</span>
+                    <span className={`text-xs ${disabled ? 'text-amber-600' : 'text-green-500'}`}>
+                      {disabled ? 'needs env' : 'ready'}
+                    </span>
+                  </label>
+                );
+              })}
             </div>
-            <p className="text-xs text-gray-500">OSM Liberty & CartoDB work without any API key!</p>
+            <p className="text-xs text-gray-500">
+              OSM/CARTO and PMTiles are keyless. Mapbox/MapTiler require configured tokens.
+            </p>
           </div>
 
           {/* Isochrone Provider selection (dev/testing) */}
@@ -241,7 +233,7 @@ export function ControlPanel() {
                   onChange={() => setIsoProvider && setIsoProvider('ors')}
                 />
                 <span>OpenRouteService</span>
-                <span className="ml-2 text-xs text-gray-400">{process.env.NEXT_PUBLIC_ORS_API_KEY ? 'configured' : 'not configured'}</span>
+                <span className="ml-2 text-xs text-gray-400">server</span>
               </label>
 
               <label className="inline-flex items-center space-x-2">
@@ -318,6 +310,11 @@ export function ControlPanel() {
                 <span className="ml-2 text-xs text-gray-400">fallback</span>
               </label>
             </div>
+          </div>
+
+          {/* License Manager */}
+          <div className="pt-4 border-t border-gray-200">
+            <LicenseManager />
           </div>
         </div>
       )}
